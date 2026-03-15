@@ -1,0 +1,2501 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="NéoNote">
+<meta name="application-name" content="NéoNote">
+<meta name="theme-color" content="#003189">
+<link rel="apple-touch-icon" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="72x72" href="icons/icon-72x72.png">
+<link rel="apple-touch-icon" sizes="96x96" href="icons/icon-96x96.png">
+<link rel="apple-touch-icon" sizes="128x128" href="icons/icon-128x128.png">
+<link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+<link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
+<link rel="manifest" href="manifest.json">
+<title>NéoNote — Évaluation CNFCF</title>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Marianne:wght@300;400;500;700&family=Source+Serif+4:wght@400;600;700&display=swap');
+/* Fallback si Marianne n'est pas disponible publiquement */
+@import url('https://fonts.googleapis.com/css2?family=Spectral:wght@400;600;700&family=Source+Sans+3:wght@300;400;600;700&display=swap');
+
+:root{
+  --bg:#f0f2f7;
+  --surface:#ffffff;
+  --surface2:#e8ecf5;
+  --surface3:#d4daea;
+  --border:#bbc4d8;
+  --border-light:#d8dfe8;
+  --accent:#003189;        /* Bleu République */
+  --accent2:#1a4fcf;       /* Bleu vif */
+  --accent-light:#e8eeff;
+  --rouge:#c1121f;         /* Rouge tricolore */
+  --rouge-light:#fde8e9;
+  --text:#1a1f2e;
+  --text-muted:#5a6480;
+  --text-light:#8892a8;
+  --success:#1a7a4a;
+  --success-light:#e4f5ec;
+  --danger:#c1121f;
+  --danger-light:#fde8e9;
+  --warning:#b45309;
+  --warning-light:#fef3c7;
+  --info:#003189;
+  --gold:#c9a227;
+  --radius:6px;
+  --radius-lg:10px;
+  --shadow:0 1px 4px rgba(0,49,137,0.10),0 4px 16px rgba(0,49,137,0.06);
+  --shadow-lg:0 4px 24px rgba(0,49,137,0.14),0 1px 4px rgba(0,49,137,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Source Sans 3','Segoe UI',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;overflow-x:hidden;}
+
+/* ── BANDE TRICOLORE ── */
+.tricolor-bar{height:4px;background:linear-gradient(to right,#003189 33.3%,#ffffff 33.3%,#ffffff 66.6%,#c1121f 66.6%);border-bottom:1px solid #bbc4d8;}
+
+/* ── ÉCRAN CONNEXION ── */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:1000;display:flex;flex-direction:column;align-items:center;overflow-y:auto;}
+.login-tricolor{height:6px;width:100%;background:linear-gradient(to right,#003189 33.3%,#ffffff 33.3%,#ffffff 66.6%,#c1121f 66.6%);flex-shrink:0;}
+.login-header{width:100%;background:var(--accent);padding:18px 24px 20px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;}
+.login-logo{font-family:'Spectral','Georgia',serif;font-size:34px;font-weight:700;color:#ffffff;letter-spacing:2px;margin-bottom:2px;}
+.login-logo-sub{font-size:11px;color:rgba(255,255,255,0.75);letter-spacing:3px;text-transform:uppercase;font-weight:600;}
+.login-org{font-size:12px;color:rgba(255,255,255,0.55);letter-spacing:1.5px;text-transform:uppercase;margin-top:6px;}
+.login-body{flex:1;display:flex;flex-direction:column;align-items:center;padding:24px 16px 40px;width:100%;}
+.login-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:440px;box-shadow:var(--shadow-lg);overflow:hidden;}
+.login-box-header{background:var(--accent-light);border-bottom:2px solid var(--accent);padding:14px 20px;display:flex;align-items:center;gap:10px;}
+.login-box-header-icon{font-size:20px;}
+.login-title{font-family:'Spectral','Georgia',serif;font-size:16px;font-weight:600;letter-spacing:0.5px;color:var(--accent);}
+.login-box-body{padding:20px;}
+
+/* ── PROFIL CONNEXION AMÉLIORÉ ── */
+.login-search{position:relative;margin-bottom:14px;}
+.login-search input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px 10px 38px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+.login-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,49,137,0.1);}
+.login-search-ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;color:var(--text-muted);}
+.profile-list{display:flex;flex-direction:column;gap:0;max-height:320px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;background:var(--surface);}
+.profile-entry{display:flex;flex-direction:column;border-bottom:1px solid var(--border-light);}
+.profile-entry:last-child{border-bottom:none;}
+.profile-item{background:var(--surface);border:none;padding:11px 14px;cursor:pointer;transition:all 0.15s;display:flex;align-items:center;gap:10px;}
+.profile-item:last-child{border-bottom:none;}
+.profile-item:hover{background:var(--accent-light);}
+.profile-item.selected{background:var(--accent);border-bottom-color:var(--accent2);}
+.profile-item.selected .profile-name{color:#fff;}
+.profile-item.selected .profile-meta{color:rgba(255,255,255,0.7);}
+.profile-item.selected .role-badge{opacity:0.9;}
+.profile-avatar{width:34px;height:34px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;font-weight:700;}
+.av-admin{background:rgba(193,18,31,0.12);color:var(--rouge);}
+.av-chef{background:rgba(193,18,31,0.12);color:var(--rouge);}
+.av-dir{background:rgba(0,49,137,0.12);color:var(--accent);}
+.av-instr{background:rgba(0,49,137,0.08);color:var(--accent2);}
+.av-det{background:rgba(26,122,74,0.12);color:var(--success);}
+.profile-info{flex:1;min-width:0;}
+.profile-name{font-weight:600;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text);}
+.profile-meta{font-size:11px;color:var(--text-muted);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.role-badge{font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;flex-shrink:0;white-space:nowrap;letter-spacing:0.5px;}
+.rb-admin{background:rgba(193,18,31,0.12);color:var(--rouge);}
+.rb-dir{background:rgba(0,49,137,0.15);color:var(--accent);}
+.rb-instr{background:rgba(0,49,137,0.1);color:var(--accent2);}
+.rb-det{background:rgba(26,122,74,0.12);color:var(--success);}
+
+/* ── SECTION MOT DE PASSE CONNEXION ── */
+.pw-section{display:none!important;} /* obsolète — remplacé par pw-inline */
+.pw-section.show{display:none!important;}
+.pw-section-title{display:none;}
+.pw-section input{}
+.pw-section input:focus{}
+/* ── BOÎTE MOT DE PASSE INLINE (sous chaque profil) ── */
+.pw-inline{display:none;overflow:hidden;}
+.pw-inline.open{display:block;}
+.pw-inline-inner{background:var(--accent-light);border:1px solid rgba(0,49,137,0.25);border-top:2px solid var(--accent);border-radius:0 0 var(--radius) var(--radius);padding:12px 14px 10px;margin-bottom:2px;}
+.pw-inline-input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;margin-bottom:0;}
+.pw-inline-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,49,137,0.1);}
+.login-error{color:var(--danger);font-size:13px;font-weight:600;margin-top:8px;text-align:center;min-height:18px;}
+
+/* ── HEADER ── */
+header{background:var(--accent);border-bottom:3px solid var(--accent2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,49,137,0.25);}
+.header-logo-area{display:flex;align-items:center;gap:10px;}
+.header-tricolor{width:4px;height:32px;background:linear-gradient(to bottom,#ffffff 33%,var(--rouge) 33%,var(--rouge) 66%,var(--rouge) 66%);border-radius:2px;flex-shrink:0;}
+header h1{font-family:'Spectral','Georgia',serif;font-size:20px;font-weight:700;letter-spacing:2px;color:#ffffff;}
+header h1 span{color:rgba(255,255,255,0.55);font-size:11px;font-weight:400;letter-spacing:3px;display:block;text-transform:uppercase;font-family:'Source Sans 3',sans-serif;}
+.header-right{display:flex;align-items:center;gap:8px;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,0.3);transition:all 0.3s;flex-shrink:0;}
+.sync-dot.online{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,0.7);}
+.sync-dot.syncing{background:#fde68a;animation:pulse 1s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.user-btn{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.25);border-radius:4px;padding:5px 10px 5px 6px;cursor:pointer;transition:all 0.2s;}
+.user-btn:hover{background:rgba(255,255,255,0.2);}
+.user-avatar-sm{width:24px;height:24px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:13px;}
+.user-name-sm{font-size:12px;font-weight:600;color:#ffffff;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── NAV ── */
+.nav-tabs{display:flex;background:var(--surface);border-bottom:2px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.nav-tabs::-webkit-scrollbar{display:none;}
+.nav-tab{flex:1;min-width:55px;padding:11px 3px;text-align:center;font-size:10px;font-weight:700;color:var(--text-muted);cursor:pointer;border-bottom:3px solid transparent;transition:all 0.2s;user-select:none;white-space:nowrap;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:-2px;}
+.nav-tab.active{color:var(--accent);border-bottom-color:var(--accent);background:var(--accent-light);}
+
+/* ── PAGES ── */
+.page{display:none;padding:20px;animation:fadeIn 0.2s ease;}
+.page.active{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:16px;box-shadow:var(--shadow);}
+.card-title{font-family:'Spectral','Georgia',serif;font-size:16px;font-weight:600;color:var(--accent);margin-bottom:16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border-light);padding-bottom:10px;}
+label{display:block;font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-muted);margin-bottom:5px;}
+input[type="text"],input[type="date"],input[type="password"],select,textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:14px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;margin-bottom:14px;-webkit-appearance:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,49,137,0.1);background:#fff;}
+select option{background:var(--surface);}
+textarea{resize:vertical;min-height:80px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+/* ── MÉTÉO ── */
+.meteo-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:14px;}
+.meteo-btn{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 8px;text-align:center;cursor:pointer;transition:all 0.2s;font-size:12px;font-weight:600;color:var(--text-muted);user-select:none;}
+.meteo-btn .emoji{font-size:22px;display:block;margin-bottom:5px;}
+.meteo-btn.selected{border-color:var(--accent);background:var(--accent-light);color:var(--accent);}
+
+/* ── NOTE PAR BOUTONS ── */
+.note-bareme-selector{display:flex;gap:6px;margin-bottom:14px;}
+.bareme-btn{flex:1;padding:8px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;font-weight:700;color:var(--text-muted);cursor:pointer;text-align:center;transition:all 0.2s;letter-spacing:0.5px;}
+.bareme-btn.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+.note-grid{display:grid;gap:5px;margin-bottom:12px;}
+.note-grid.cols-6{grid-template-columns:repeat(6,1fr);}
+.note-grid.cols-5{grid-template-columns:repeat(5,1fr);}
+.note-btn{padding:10px 4px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);font-size:14px;font-weight:700;color:var(--text-muted);cursor:pointer;text-align:center;transition:all 0.15s;font-family:'Source Sans 3',monospace;min-width:0;}
+.note-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.note-btn.selected-note{color:#fff;border-color:transparent;}
+.note-btn.note-col-red{background:#fde8e9;border-color:#f5a0a5;color:#c1121f;}
+.note-btn.note-col-red.selected-note{background:var(--rouge);border-color:var(--rouge);color:#fff;}
+.note-btn.note-col-orange{background:#fff3e0;border-color:#f5c88a;color:#b45309;}
+.note-btn.note-col-orange.selected-note{background:#d97706;border-color:#d97706;color:#fff;}
+.note-btn.note-col-green{background:#e4f5ec;border-color:#86c89b;color:#1a7a4a;}
+.note-btn.note-col-green.selected-note{background:var(--success);border-color:var(--success);color:#fff;}
+.note-display-selected{text-align:center;padding:8px;border-radius:var(--radius);margin-bottom:10px;font-size:28px;font-weight:700;font-family:'Spectral',serif;letter-spacing:1px;}
+
+/* ── STAGIAIRES ── */
+.stagiaire-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;transition:border-color 0.2s;box-shadow:0 1px 3px rgba(0,49,137,0.06);}
+.stagiaire-card.has-data{border-color:rgba(0,49,137,0.3);}
+.stagiaire-card.has-faute{border-color:var(--rouge)!important;border-left:4px solid var(--rouge)!important;box-shadow:0 0 10px rgba(193,18,31,0.08);}
+.stagiaire-header{display:flex;align-items:center;justify-content:space-between;cursor:pointer;}
+.stagiaire-num{font-family:'Spectral','Georgia',serif;font-size:18px;color:var(--accent);font-weight:700;}
+.stagiaire-name-display{font-size:12px;color:var(--text-muted);font-style:italic;}
+.expand-icon{font-size:16px;color:var(--text-muted);transition:transform 0.2s;}
+.stagiaire-card.expanded .expand-icon{transform:rotate(180deg);}
+.stagiaire-body{display:none;padding-top:14px;}
+.stagiaire-card.expanded .stagiaire-body{display:block;}
+.faute-badge{background:var(--rouge);color:#fff;font-size:10px;font-weight:700;padding:2px 6px;border-radius:3px;margin-left:6px;vertical-align:middle;}
+.faute-toggle{display:flex;align-items:center;gap:10px;margin-bottom:14px;cursor:pointer;user-select:none;padding:10px;background:var(--rouge-light);border:1px solid rgba(193,18,31,0.2);border-radius:var(--radius);}
+.faute-checkbox{width:20px;height:20px;border-radius:3px;border:2px solid #ccc;background:var(--surface);display:flex;align-items:center;justify-content:center;transition:all 0.2s;flex-shrink:0;}
+.faute-checkbox.checked{background:var(--rouge);border-color:var(--rouge);}
+.faute-checkbox.checked::after{content:'✓';color:#fff;font-size:13px;font-weight:700;}
+.faute-lbl{font-size:13px;font-weight:600;color:var(--text-muted);}
+.faute-lbl.active{color:var(--rouge);}
+.faute-detail{display:none;background:var(--rouge-light);border:1px solid rgba(193,18,31,0.2);border-radius:var(--radius);padding:12px;margin-bottom:14px;}
+.faute-detail.open{display:block;}
+.faute-options{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px;}
+.faute-opt{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);padding:9px 6px;text-align:center;cursor:pointer;font-size:12px;font-weight:600;color:var(--text-muted);transition:all 0.2s;user-select:none;}
+.faute-opt.selected{border-color:var(--rouge);background:var(--rouge-light);color:var(--rouge);}
+.faute-autre{display:none;margin-top:6px;}
+.faute-autre.open{display:block;}
+.note-container{margin-bottom:14px;}
+/* Hide old slider UI */
+input[type="range"]{display:none;}
+.range-labels{display:none;}
+
+/* ── BOUTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:11px 20px;border-radius:var(--radius);font-family:'Source Sans 3',sans-serif;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:all 0.2s;letter-spacing:0.3px;width:100%;margin-bottom:10px;}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(0,49,137,0.25);}
+.btn-primary:hover{background:var(--accent2);transform:translateY(-1px);}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
+.btn-warning{background:var(--warning-light);color:var(--warning);border:1px solid rgba(180,83,9,0.3);}
+.btn-danger{background:var(--rouge-light);color:var(--rouge);border:1px solid rgba(193,18,31,0.3);}
+.btn-info{background:var(--accent-light);color:var(--accent);border:1px solid rgba(0,49,137,0.25);}
+.btn-sm{padding:7px 12px;font-size:12px;width:auto;margin-bottom:0;}
+
+/* ── PARTAGE ── */
+.share-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+.share-btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:16px 8px;border-radius:var(--radius-lg);cursor:pointer;font-size:12px;font-weight:600;border:none;transition:all 0.2s;font-family:'Source Sans 3',sans-serif;}
+.share-btn:hover{transform:translateY(-2px);}
+.share-btn .s-icon{font-size:26px;}
+.sb-mail{background:var(--accent-light);color:var(--accent);border:1px solid rgba(0,49,137,0.25);}
+.sb-whatsapp{background:rgba(37,211,102,0.1);color:#128c7e;border:1px solid rgba(37,211,102,0.3);}
+.sb-tchap{background:rgba(0,49,137,0.08);color:var(--accent2);border:1px solid rgba(0,49,137,0.25);}
+.sb-copy{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.sb-pdf{background:var(--rouge-light);color:var(--rouge);border:1px solid rgba(193,18,31,0.3);}
+
+/* ── HISTORIQUE ── */
+.session-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;transition:border-color 0.2s;box-shadow:var(--shadow);}
+.session-item:hover{border-color:rgba(0,49,137,0.3);}
+.session-item-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;cursor:pointer;}
+.session-date-lbl{font-family:'Spectral','Georgia',serif;font-size:18px;color:var(--accent);font-weight:700;}
+.session-route-lbl{font-family:monospace;font-size:11px;background:var(--surface2);padding:3px 8px;border-radius:3px;color:var(--text-muted);}
+.session-meta{font-size:12px;color:var(--text-muted);display:flex;gap:8px;flex-wrap:wrap;cursor:pointer;margin-bottom:10px;}
+.session-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.instr-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-light);border:1px solid rgba(0,49,137,0.2);border-radius:3px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--accent);}
+.stage-tag{display:inline-flex;align-items:center;background:var(--rouge-light);border:1px solid rgba(193,18,31,0.25);border-radius:3px;padding:2px 8px;font-size:11px;font-weight:700;color:var(--rouge);}
+.edit-badge{background:var(--warning-light);color:var(--warning);border:1px solid rgba(180,83,9,0.3);border-radius:3px;padding:2px 8px;font-size:10px;font-weight:700;}
+
+/* ── FILTRES ── */
+.filtre-bar{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;}
+.filtre-bar::-webkit-scrollbar{display:none;}
+.filtre-chip{background:var(--surface);border:1px solid var(--border);border-radius:3px;padding:5px 12px;font-size:11px;font-weight:700;color:var(--text-muted);cursor:pointer;white-space:nowrap;transition:all 0.2s;user-select:none;letter-spacing:0.5px;text-transform:uppercase;}
+.filtre-chip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* ── SUIVI STAG ── */
+.search-box{position:relative;margin-bottom:12px;}
+.search-box input{margin-bottom:0;padding-left:40px;}
+.search-ico{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:16px;pointer-events:none;}
+.stag-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 16px;margin-bottom:10px;box-shadow:var(--shadow);}
+.stag-item-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+.stag-name{font-family:'Spectral','Georgia',serif;font-size:20px;color:var(--text);font-weight:700;}
+.stag-avg{font-family:monospace;font-size:22px;font-weight:700;}
+.stag-session-row{background:var(--surface2);border-radius:var(--radius);padding:9px 12px;display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;}
+.stag-session-left{display:flex;flex-direction:column;gap:3px;flex:1;}
+.stag-session-note{font-family:monospace;font-size:18px;font-weight:700;margin-left:10px;flex-shrink:0;}
+.prog-bar-wrap{background:var(--surface2);border-radius:3px;height:6px;margin:8px 0;overflow:hidden;}
+.prog-bar{height:100%;border-radius:3px;transition:width 0.5s ease;}
+
+/* ── PROFILS ── */
+.profil-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px;}
+.profil-card .pc-info{flex:1;min-width:0;}
+.profil-card .pc-name{font-weight:700;font-size:13px;}
+.profil-card .pc-detail{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.profil-card .pc-actions{display:flex;gap:6px;flex-shrink:0;}
+
+/* ── MISC ── */
+.rapport-box{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;}
+.empty-state{text-align:center;padding:50px 20px;color:var(--text-muted);}
+.empty-state .icon{font-size:42px;margin-bottom:12px;}
+.empty-state p{font-size:14px;line-height:1.6;}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px;}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px;text-align:center;box-shadow:var(--shadow);}
+.stat-value{font-family:'Spectral','Georgia',serif;font-size:26px;font-weight:700;color:var(--accent);}
+.stat-label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:var(--text-muted);margin-top:2px;font-weight:700;}
+.instructor-tag{display:inline-flex;align-items:center;gap:6px;background:var(--accent-light);border:1px solid rgba(0,49,137,0.2);border-radius:3px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--accent);margin-bottom:16px;letter-spacing:0.3px;}
+.edit-mode-banner{background:var(--warning-light);border:1px solid rgba(180,83,9,0.3);border-left:4px solid var(--warning);border-radius:var(--radius);padding:10px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--warning);}
+#toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--accent);color:#fff;font-weight:700;font-size:13px;padding:10px 22px;border-radius:4px;z-index:9999;transition:transform 0.3s ease;white-space:nowrap;box-shadow:var(--shadow-lg);}
+#toast.show{transform:translateX(-50%) translateY(0);}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,20,60,0.6);z-index:500;align-items:flex-end;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--surface);border-top:3px solid var(--accent);border-radius:var(--radius-lg) var(--radius-lg) 0 0;padding:22px 20px 40px;width:100%;max-height:90dvh;overflow-y:auto;animation:slideUp 0.3s ease;box-shadow:0 -4px 30px rgba(0,49,137,0.15);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:none}}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+.modal-title{font-family:'Spectral','Georgia',serif;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:18px;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+/* ── LISTE STAGIAIRES SÉLECTION ── */
+.stagiaires-checklist{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:6px;max-height:220px;overflow-y:auto;padding:2px;}
+.stag-check-item{display:flex;align-items:center;gap:6px;background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 6px;cursor:pointer;transition:all 0.15s;user-select:none;}
+.stag-check-item:hover{border-color:var(--accent);}
+.stag-check-item.checked{background:var(--accent-light);border-color:var(--accent);}
+.stag-check-box{width:18px;height:18px;border-radius:3px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:var(--accent);transition:all 0.15s;}
+.stag-check-item.checked .stag-check-box{background:var(--accent);border-color:var(--accent);color:#fff;}
+.stag-check-num{font-size:12px;font-weight:700;color:var(--text);}
+.stag-check-item.checked .stag-check-num{color:var(--accent);}
+
+/* ── ÉDITION STAGE ── */
+.stage-edit-section{margin-bottom:16px;}
+.stage-edit-section-title{font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid var(--border-light);}
+.instr-check-list{display:flex;flex-direction:column;gap:5px;max-height:200px;overflow-y:auto;margin-bottom:8px;}
+.instr-check-item{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;cursor:pointer;transition:all 0.15s;}
+.instr-check-item:hover{border-color:var(--accent);}
+.instr-check-item.checked{background:var(--accent-light);border-color:var(--accent);}
+.instr-check-box{width:18px;height:18px;border-radius:3px;border:2px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;color:var(--accent);}
+.instr-check-item.checked .instr-check-box{background:var(--accent);border-color:var(--accent);color:#fff;}
+.stag-num-list{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;min-height:30px;padding:4px;}
+.stag-num-chip{background:var(--accent-light);border:1px solid rgba(0,49,137,0.2);color:var(--accent);border-radius:3px;padding:3px 8px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.stag-num-chip .chip-del{font-size:10px;opacity:0.6;cursor:pointer;}
+.stag-num-chip .chip-del:hover{opacity:1;color:var(--rouge);}
+.stag-num-add{display:flex;gap:6px;}
+
+.divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+
+/* ── APPRÉCIATIONS CRITÈRES ── */
+.appreciation-section{margin-bottom:14px;}
+.appreciation-slots{display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.appreciation-slot{display:flex;gap:6px;align-items:stretch;}
+.critere-select{flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;color:var(--text);font-family:'Source Sans 3',sans-serif;font-size:13px;outline:none;cursor:pointer;transition:border-color 0.2s;-webkit-appearance:none;margin-bottom:0;min-width:0;}
+.critere-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,49,137,0.1);}
+.critere-select.has-value{background:var(--accent-light);border-color:rgba(0,49,137,0.3);color:var(--accent);font-weight:600;}
+.critere-del-btn{background:var(--rouge-light);border:1px solid rgba(193,18,31,0.2);color:var(--rouge);border-radius:var(--radius);padding:0 10px;cursor:pointer;font-size:14px;flex-shrink:0;transition:all 0.15s;}
+.critere-del-btn:hover{background:var(--rouge);color:#fff;}
+.appreciation-add-btn{display:flex;align-items:center;gap:6px;padding:7px 12px;background:var(--surface2);border:1px dashed var(--border);border-radius:var(--radius);font-size:12px;font-weight:600;color:var(--text-muted);cursor:pointer;transition:all 0.2s;width:100%;}
+.appreciation-add-btn:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-light);}
+.appreciation-libre{margin-top:8px;}
+.appreciation-libre textarea{margin-bottom:0;min-height:60px;font-size:13px;}
+
+/* ── MODAL CRITÈRES ── */
+.critere-list-item{display:flex;align-items:center;gap:8px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:7px;}
+.critere-list-item .critere-texte{flex:1;font-size:13px;font-weight:500;}
+.critere-list-item .critere-auteur{font-size:10px;color:var(--text-muted);white-space:nowrap;}
+.critere-list-item .critere-del{background:var(--rouge-light);border:1px solid rgba(193,18,31,0.2);color:var(--rouge);border-radius:3px;padding:3px 8px;cursor:pointer;font-size:11px;font-weight:700;flex-shrink:0;}
+.critere-list-item .critere-del:hover{background:var(--rouge);color:#fff;}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════
+     ÉCRAN DE CONNEXION
+══════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-tricolor"></div>
+  <div class="login-header">
+    <div class="login-logo">NéoNote</div>
+    <div class="login-logo-sub">Système d'évaluation</div>
+    <div class="login-org">Centre National de Formation de Contrôle des Flux</div>
+  </div>
+  <div class="login-body">
+    <div class="login-box">
+      <div class="login-box-header">
+        <span class="login-box-header-icon">🔐</span>
+        <div class="login-title" id="login-step-title">Identification — Sélectionnez votre profil</div>
+      </div>
+      <div class="login-box-body">
+        <!-- ÉTAPE 1 : liste des profils -->
+        <div id="login-step1">
+          <div class="login-search">
+            <span class="login-search-ico">🔍</span>
+            <input type="text" id="login-search-input" placeholder="Rechercher un nom, grade..." oninput="filterLoginProfiles(this.value)">
+          </div>
+          <div class="profile-list" id="profile-list-login">
+            <div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">⟳ Chargement des profils...</div>
+          </div>
+          <div id="pw-field" class="pw-section">
+            <div class="pw-section-title">🔒 Mot de passe requis</div>
+            <input type="password" id="login-pw" placeholder="Votre mot de passe..." onkeydown="if(event.key==='Enter')validerConnexion()">
+          </div>
+          <div class="login-error" id="login-error"></div>
+          <button class="btn btn-primary" onclick="validerConnexion()" style="margin-top:4px;">→ Se connecter</button>
+        </div>
+      </div>
+    </div>
+    <div style="margin-top:20px;text-align:center;font-size:11px;color:var(--text-light);letter-spacing:1px;">CNFCF — Application sécurisée — Usage interne</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     APP PRINCIPALE
+══════════════════════════════════════════ -->
+<div id="app" style="display:none;">
+
+<header>
+  <div class="header-logo-area">
+    <div class="header-tricolor"></div>
+    <h1>NéoNote <span>CNFCF</span></h1>
+  </div>
+  <div class="header-right">
+    <div class="sync-dot" id="sync-dot"></div>
+    <div class="user-btn" onclick="openModal('modal-user-menu')">
+      <div class="user-avatar-sm" id="header-avatar">🏍</div>
+      <div class="user-name-sm" id="header-name">—</div>
+    </div>
+  </div>
+</header>
+
+<nav class="nav-tabs" id="main-nav">
+  <div class="nav-tab active" onclick="showPage('nouvelle',this)">✚ Session</div>
+  <div class="nav-tab" onclick="showPage('historique',this)">📋 Historique</div>
+  <div class="nav-tab" onclick="showPage('stagiaires',this)">🎓 Suivi</div>
+  <div class="nav-tab" onclick="showPage('export',this)">📊 Export</div>
+  <div class="nav-tab" id="nav-stages" style="display:none;" onclick="showPage('stages',this)">🗂 Stages</div>
+  <div class="nav-tab" id="nav-admin" style="display:none;" onclick="showPage('admin',this)">👑 Admin</div>
+  <div class="nav-tab" onclick="showPage('parametres',this)">⚙ Réglages</div>
+</nav>
+
+<!-- ══ SESSION ══ -->
+<div id="page-nouvelle" class="page active">
+  <div id="edit-banner" class="edit-mode-banner" style="display:none;">
+    ✏️ Mode modification — <span id="edit-session-info"></span>
+    <button class="btn btn-secondary btn-sm" style="margin-left:auto;margin-bottom:0;" onclick="annulerEdition()">Annuler</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Informations Session</div>
+    <div class="instructor-tag"><span id="instr-role-icon">🏍</span><span id="instructor-name-display">—</span></div>
+    <div class="form-row">
+      <div><label>Date</label><input type="date" id="session-date"></div>
+      <div><label>Route</label><input type="text" id="session-route" placeholder="Route 1"></div>
+    </div>
+    <label>Stage</label>
+    <div style="display:flex;gap:8px;margin-bottom:14px;">
+      <select id="session-stage" style="flex:1;margin-bottom:0;" onchange="onStageChange()"></select>
+      <button class="btn btn-secondary btn-sm" style="width:auto;" onclick="ouvrirGestionStages()">⚙ Stages</button>
+    </div>
+    <label>Barème de notation</label>
+    <div class="note-bareme-selector" id="bareme-selector">
+      <div class="bareme-btn active" data-bareme="16" onclick="setBareme(16,this)">Sur 16</div>
+      <div class="bareme-btn" data-bareme="14" onclick="setBareme(14,this)">Sur 14</div>
+      <div class="bareme-btn" data-bareme="12" onclick="setBareme(12,this)">Sur 12</div>
+    </div>
+    <!-- Zone dynamique : liste à cocher OU nombre libre selon le stage -->
+    <div id="stagiaires-selection-zone">
+      <label>Nombre de Stagiaires</label>
+      <select id="session-nb-stagiaires" onchange="buildStagiairesLibres()" style="margin-bottom:0;">
+        <option value="1">1</option><option value="2">2</option><option value="3">3</option>
+        <option value="4">4</option><option value="5">5</option><option value="6" selected>6</option>
+        <option value="7">7</option><option value="8">8</option><option value="9">9</option>
+        <option value="10">10</option><option value="11">11</option><option value="12">12</option>
+        <option value="13">13</option><option value="14">14</option><option value="15">15</option>
+        <option value="16">16</option><option value="17">17</option><option value="18">18</option>
+        <option value="19">19</option><option value="20">20</option><option value="21">21</option>
+        <option value="22">22</option><option value="23">23</option><option value="24">24</option>
+        <option value="25">25</option><option value="26">26</option><option value="27">27</option>
+        <option value="28">28</option><option value="29">29</option><option value="30">30</option>
+      </select>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">🌤 Météo</div>
+    <div class="meteo-grid">
+      <div class="meteo-btn" data-meteo="Soleil / Beau temps" onclick="selectMeteo(this)"><span class="emoji">☀️</span>Soleil / Beau temps</div>
+      <div class="meteo-btn" data-meteo="Nuageux" onclick="selectMeteo(this)"><span class="emoji">⛅</span>Nuageux</div>
+      <div class="meteo-btn" data-meteo="Pluie" onclick="selectMeteo(this)"><span class="emoji">🌧️</span>Pluie</div>
+      <div class="meteo-btn" data-meteo="Chaussée humide" onclick="selectMeteo(this)"><span class="emoji">💧</span>Chaussée humide</div>
+      <div class="meteo-btn" data-meteo="Brouillard" onclick="selectMeteo(this)"><span class="emoji">🌫️</span>Brouillard</div>
+      <div class="meteo-btn" data-meteo="Neige / Verglas" onclick="selectMeteo(this)"><span class="emoji">❄️</span>Neige / Verglas</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title" style="justify-content:space-between;">
+      <span>🏍 Stagiaires</span>
+      <button class="btn btn-secondary btn-sm" style="margin-bottom:0;font-size:11px;" onclick="ouvrirGestionCriteres()">💬 Critères</button>
+    </div>
+    <div id="stagiaires-list"></div>
+  </div>
+  <button class="btn btn-primary" onclick="genererRapport()">✦ Générer le Rapport</button>
+  <button class="btn btn-secondary" onclick="ouvrirPartage('session')">📤 Partager la Synthèse</button>
+  <button class="btn btn-secondary" id="btn-sauvegarder" onclick="sauvegarderSession()">💾 Sauvegarder & Synchroniser</button>
+  <button class="btn btn-danger" onclick="reinitialiser()">↺ Réinitialiser</button>
+</div>
+
+<!-- ══ HISTORIQUE ══ -->
+<div id="page-historique" class="page">
+  <div class="stats-row" id="global-stats"></div>
+  <div class="filtre-bar" id="filtre-bar"></div>
+  <div id="sessions-list"></div>
+</div>
+
+<!-- ══ SUIVI STAGIAIRES ══ -->
+<div id="page-stagiaires" class="page">
+  <div class="search-box">
+    <span class="search-ico">🔍</span>
+    <input type="text" id="stag-search" placeholder="Rechercher un stagiaire..." oninput="renderStagiairesTab()">
+  </div>
+  <div class="filtre-bar" id="stag-filtre-bar"></div>
+  <div id="stagiaires-tab-list"></div>
+</div>
+
+<!-- ══ EXPORT ══ -->
+<div id="page-export" class="page">
+  <div class="card">
+    <div class="card-title">📊 Export LibreOffice / Excel</div>
+    <p style="font-size:14px;color:var(--text-muted);margin-bottom:16px;line-height:1.6;">Génère un fichier <strong style="color:var(--text)">.xlsx</strong> par stage, onglet par stagiaire trié alphabétiquement.</p>
+    <div id="export-stages-list"></div>
+    <button class="btn btn-primary" onclick="exporterTousLesStages()">📥 Exporter tous les stages</button>
+  </div>
+  <div class="card">
+    <div class="card-title">📋 Export JSON</div>
+    <button class="btn btn-secondary" onclick="exporterDonnees()">📥 Export complet (JSON)</button>
+  </div>
+</div>
+
+<!-- ══ STAGES ══ -->
+<div id="page-stages" class="page">
+  <div class="card">
+    <div class="card-title">🗂 Gestion des Stages</div>
+    <div id="stages-list-params"></div>
+    <hr class="divider">
+    <label>Nouveau stage</label>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="new-stage-input" placeholder="Nom du nouveau stage..." style="margin-bottom:0;flex:1;" onkeydown="if(event.key==='Enter')ajouterStage()">
+      <button class="btn btn-primary btn-sm" style="width:auto;" onclick="ajouterStage()">+ Créer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ADMIN ══ -->
+<div id="page-admin" class="page">
+  <div class="card">
+    <div class="card-title">👑 Gestion des Profils</div>
+    <div id="admin-profiles-list"></div>
+    <button class="btn btn-primary" onclick="openModal('modal-creer-profil')">✚ Créer un nouveau profil</button>
+  </div>
+</div>
+
+<!-- ══ PARAMÈTRES ══ -->
+<div id="page-parametres" class="page">
+  <div class="card">
+    <div class="card-title">👤 Mon Profil</div>
+    <div id="mon-profil-display"></div>
+    <button class="btn btn-warning" onclick="openModal('modal-edit-profil')">✏️ Modifier mon profil</button>
+  </div>
+  <div id="params-stages-card" class="card" style="display:none;">
+    <div class="card-title">🗂 Gestion des Stages</div>
+    <div id="stages-list-params-settings"></div>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <input type="text" id="new-stage-input-settings" placeholder="Nom du nouveau stage..." style="margin-bottom:0;flex:1;" onkeydown="if(event.key==='Enter')ajouterStageSettings()">
+      <button class="btn btn-primary btn-sm" style="width:auto;" onclick="ajouterStageSettings()">+ Créer</button>
+    </div>
+  </div>
+  <div class="card" id="firebase-card">
+    <div class="card-title">🔥 Firebase</div>
+    <label>API Key</label><input type="text" id="fb-apiKey" oninput="saveFirebaseConfig()">
+    <label>Auth Domain</label><input type="text" id="fb-authDomain" oninput="saveFirebaseConfig()">
+    <label>Database URL</label><input type="text" id="fb-databaseURL" oninput="saveFirebaseConfig()">
+    <label>Project ID</label><input type="text" id="fb-projectId" oninput="saveFirebaseConfig()">
+    <div id="firebase-connect-status" style="font-size:13px;font-weight:600;min-height:20px;"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">🚪 Déconnexion</div>
+    <button class="btn btn-danger" onclick="seDeconnecter()">🚪 Se déconnecter</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+
+<!-- ══════════════════════════════════════════
+     MODALS
+══════════════════════════════════════════ -->
+
+<!-- RAPPORT -->
+<div class="modal-overlay" id="modal-rapport">
+  <div class="modal">
+    <div class="modal-title">✦ Rapport</div>
+    <div id="rapport-contenu"></div>
+    <button class="btn btn-primary" onclick="ouvrirPartage('rapport')">📤 Partager</button>
+    <button class="btn btn-secondary" onclick="sauvegarderEtFermer()">💾 Sauvegarder & Fermer</button>
+    <button class="btn btn-danger" onclick="closeModal('modal-rapport')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- DETAIL SESSION -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal">
+    <div id="detail-contenu"></div>
+    <button class="btn btn-danger" style="margin-top:8px;" onclick="closeModal('modal-detail')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- PARTAGE -->
+<div class="modal-overlay" id="modal-partage">
+  <div class="modal">
+    <div class="modal-title" id="partage-titre">📤 Partager</div>
+    <div class="share-grid" style="grid-template-columns:1fr 1fr 1fr;">
+      <button class="share-btn sb-mail" onclick="partagerVia('mail')"><span class="s-icon">✉️</span>Mail</button>
+      <button class="share-btn sb-whatsapp" onclick="partagerVia('whatsapp')"><span class="s-icon">💬</span>WhatsApp</button>
+      <button class="share-btn sb-tchap" onclick="partagerVia('tchap')"><span class="s-icon">🔵</span>Tchap</button>
+      <button class="share-btn sb-copy" onclick="partagerVia('copy')"><span class="s-icon">📋</span>Copier</button>
+      <button class="share-btn sb-pdf" onclick="partagerVia('pdf')" style="grid-column:span 1"><span class="s-icon">📄</span>PDF</button>
+    </div>
+    <button class="btn btn-danger" onclick="closeModal('modal-partage')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- SUIVI STAGIAIRE -->
+<div class="modal-overlay" id="modal-suivi">
+  <div class="modal">
+    <div class="modal-title" id="suivi-titre">📈 Suivi</div>
+    <div id="suivi-contenu"></div>
+    <button class="btn btn-primary" onclick="partagerSuivi()">📤 Partager le suivi</button>
+    <button class="btn btn-danger" onclick="closeModal('modal-suivi')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- ÉDITION STAGE -->
+<div class="modal-overlay" id="modal-edit-stage">
+  <div class="modal">
+    <div class="modal-title" id="edit-stage-titre">📚 Éditer le stage</div>
+    <input type="hidden" id="edit-stage-id">
+
+    <div class="stage-edit-section">
+      <div class="stage-edit-section-title">Nom du stage</div>
+      <input type="text" id="edit-stage-nom" placeholder="Nom du stage..." style="margin-bottom:0;">
+    </div>
+
+    <div class="stage-edit-section">
+      <div class="stage-edit-section-title">
+        Instructeurs autorisés
+        <span style="font-weight:400;color:var(--text-muted);font-size:10px;margin-left:6px;">Laisser vide = tous les instructeurs</span>
+      </div>
+      <div class="instr-check-list" id="edit-stage-instrs"></div>
+    </div>
+
+    <div class="stage-edit-section">
+      <div class="stage-edit-section-title">Liste des stagiaires (numéros)</div>
+      <div class="stag-num-list" id="edit-stage-stag-list"></div>
+      <div class="stag-num-add">
+        <input type="text" id="edit-stage-stag-input" placeholder="ex: 1-30  ou  1 2 3 4  ou  5" style="flex:1;margin-bottom:0;" onkeydown="if(event.key==='Enter')ajouterNumerosStagiaires()">
+        <button class="btn btn-primary btn-sm" style="width:auto;flex-shrink:0;" onclick="ajouterNumerosStagiaires()">+ Ajouter</button>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);margin-top:6px;">Séparés par des espaces <code>1 2 3</code>, virgules <code>1,2,3</code> ou une plage <code>1-30</code></p>
+    </div>
+
+    <button class="btn btn-primary" onclick="sauvegarderEditionStage()">✅ Sauvegarder le stage</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-edit-stage')">Annuler</button>
+  </div>
+</div>
+
+<!-- GESTION STAGES -->
+<div class="modal-overlay" id="modal-stages">
+  <div class="modal">
+    <div class="modal-title">🗂 Gestion des Stages</div>
+    <div id="modal-stages-list"></div>
+    <hr class="divider">
+    <label>Nouveau stage</label>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="modal-new-stage" placeholder="Nom du stage..." style="margin-bottom:0;flex:1;">
+      <button class="btn btn-primary btn-sm" style="width:auto;" onclick="ajouterStageModal()">+ Créer</button>
+    </div>
+    <button class="btn btn-danger" style="margin-top:16px;" onclick="closeModal('modal-stages')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- SUPPRIMER STAGE -->
+<div class="modal-overlay" id="modal-del-stage">
+  <div class="modal">
+    <div class="modal-title" id="del-stage-titre">🗑 Supprimer</div>
+    <p id="del-stage-msg" style="color:var(--text-muted);font-size:14px;line-height:1.6;margin-bottom:20px;"></p>
+    <button class="btn btn-danger" id="del-stage-confirm">🗑 Confirmer</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-del-stage')">Annuler</button>
+  </div>
+</div>
+
+<!-- MENU UTILISATEUR (header) -->
+<div class="modal-overlay" id="modal-user-menu">
+  <div class="modal">
+    <div class="modal-title">👤 Mon Compte</div>
+    <div id="user-menu-content"></div>
+    <hr class="divider">
+    <button class="btn btn-warning" onclick="closeModal('modal-user-menu');openModal('modal-edit-profil')">✏️ Modifier mon profil</button>
+    <button class="btn btn-danger" onclick="seDeconnecter()">🚪 Se déconnecter</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-user-menu')">✕ Fermer</button>
+  </div>
+</div>
+
+<!-- MODIFIER PROFIL -->
+<div class="modal-overlay" id="modal-edit-profil">
+  <div class="modal">
+    <div class="modal-title">✏️ Modifier mon profil</div>
+    <label>Grade</label>
+    <select id="edit-grade">
+      <option value="">— Grade —</option>
+      <option>Colonel</option><option>Lieutenant-Colonel</option>
+      <option>Chef d'escadron</option><option>Capitaine</option>
+      <option>Lieutenant</option><option>Major</option>
+      <option>Adjudant-Chef</option><option>Adjudant</option>
+      <option>Maréchal des Logis-Chef</option><option>Garde</option>
+      <option>Gendarme</option>
+    </select>
+    <div class="form-row">
+      <div><label>Prénom</label><input type="text" id="edit-prenom"></div>
+      <div><label>Nom</label><input type="text" id="edit-nom"></div>
+    </div>
+    <div id="edit-pw-section">
+      <hr class="divider">
+      <label>Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+      <input type="password" id="edit-pw" placeholder="Nouveau mot de passe...">
+      <label>Confirmer</label>
+      <input type="password" id="edit-pw2" placeholder="Confirmer...">
+    </div>
+    <button class="btn btn-primary" onclick="sauvegarderMonProfil()">✅ Sauvegarder</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-edit-profil')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT PROFIL ADMIN -->
+<div class="modal-overlay" id="modal-admin-edit-user">
+  <div class="modal">
+    <div class="modal-title" id="admin-edit-titre">✏️ Modifier le profil</div>
+    <input type="hidden" id="admin-edit-uid">
+    <label>Rôle</label>
+    <select id="admin-edit-role">
+      <option value="admin">👑 Administrateur</option>
+      <option value="chef">🏅 Chef de Centre</option>
+      <option value="dir">🎯 Directeur de stage</option>
+      <option value="instructeur">🏍 Instructeur</option>
+      <option value="detache">🔧 Instructeur détaché</option>
+    </select>
+    <label>Grade</label>
+    <select id="admin-edit-grade">
+      <option value="">— Grade —</option>
+      <option>Colonel</option><option>Lieutenant-Colonel</option>
+      <option>Chef d'escadron</option><option>Capitaine</option>
+      <option>Lieutenant</option><option>Major</option>
+      <option>Adjudant-Chef</option><option>Adjudant</option>
+      <option>Maréchal des Logis-Chef</option><option>Garde</option>
+      <option>Gendarme</option>
+    </select>
+    <div class="form-row">
+      <div><label>Prénom</label><input type="text" id="admin-edit-prenom"></div>
+      <div><label>Nom</label><input type="text" id="admin-edit-nom"></div>
+    </div>
+    <label>Réinitialiser le mot de passe (laisser vide pour ne pas changer)</label>
+    <input type="password" id="admin-edit-pw" placeholder="Nouveau mot de passe...">
+    <button class="btn btn-primary" onclick="adminSauvegarderProfil()">✅ Sauvegarder</button>
+    <button class="btn btn-danger" id="admin-del-user-btn">🗑 Supprimer ce profil</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-admin-edit-user')">Annuler</button>
+  </div>
+</div>
+
+<!-- CRÉER PROFIL (ADMIN ONLY) -->
+<div class="modal-overlay" id="modal-creer-profil">
+  <div class="modal">
+    <div class="modal-title">✚ Nouveau Profil</div>
+    <label>Rôle</label>
+    <select id="cp-role" onchange="toggleCpPwFields()">
+      <option value="">— Choisir un rôle —</option>
+      <option value="admin">👑 Administrateur</option>
+      <option value="chef">🏅 Chef de Centre</option>
+      <option value="dir">🎯 Directeur de stage</option>
+      <option value="instructeur">🏍 Instructeur</option>
+      <option value="detache">🔧 Instructeur détaché</option>
+    </select>
+    <label>Grade</label>
+    <select id="cp-grade">
+      <option value="">— Grade —</option>
+      <option>Colonel</option><option>Lieutenant-Colonel</option>
+      <option>Chef d'escadron</option><option>Capitaine</option>
+      <option>Lieutenant</option><option>Major</option>
+      <option>Adjudant-Chef</option><option>Adjudant</option>
+      <option>Maréchal des Logis-Chef</option><option>Garde</option>
+      <option>Gendarme</option>
+    </select>
+    <div class="form-row">
+      <div><label>Prénom</label><input type="text" id="cp-prenom" placeholder="Prénom"></div>
+      <div><label>Nom</label><input type="text" id="cp-nom" placeholder="NOM"></div>
+    </div>
+    <div id="cp-pw-fields" style="display:none;">
+      <label>Mot de passe</label>
+      <input type="password" id="cp-pw" placeholder="Choisissez un mot de passe...">
+      <label>Confirmer</label>
+      <input type="password" id="cp-pw2" placeholder="Répétez le mot de passe...">
+    </div>
+    <div class="login-error" id="cp-error" style="min-height:20px;margin-bottom:10px;"></div>
+    <button class="btn btn-primary" onclick="creerProfilAdmin()">✅ Créer le profil</button>
+    <button class="btn btn-secondary" onclick="closeModal('modal-creer-profil')">Annuler</button>
+  </div>
+</div>
+
+<!-- BANNIÈRE ANDROID -->
+<div id="install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1c1c27,#13131a);border-top:2px solid #f5a623;padding:16px 20px;align-items:center;gap:14px;z-index:5000;">
+  <span style="font-size:28px;">🏍</span>
+  <div style="flex:1;"><div style="font-family:'Spectral','Georgia',serif;font-size:17px;font-weight:700;color:var(--accent);">Installer NéoNote</div><div style="font-size:12px;color:var(--text-muted);">Accès rapide depuis votre écran d'accueil</div></div>
+  <button id="install-btn" style="background:linear-gradient(135deg,#f5a623,#e8441a);color:#fff;border:none;border-radius:8px;padding:10px 16px;font-weight:700;font-size:13px;cursor:pointer;">Installer</button>
+  <button id="install-dismiss" style="background:transparent;border:none;color:#7070a0;font-size:20px;cursor:pointer;padding:4px;">✕</button>
+</div>
+
+<!-- BANNIÈRE IOS -->
+<div id="ios-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:5000;padding:12px 16px 28px;">
+  <div style="background:linear-gradient(135deg,#1c1c27,#13131a);border:1px solid rgba(245,166,35,0.4);border-radius:16px;padding:20px;box-shadow:0 -8px 40px rgba(0,0,0,0.6);position:relative;">
+    <button onclick="document.getElementById('ios-banner').style.display='none';localStorage.setItem('ios-banner-dismissed','1');" style="position:absolute;top:12px;right:12px;background:rgba(255,255,255,0.08);border:none;color:#7070a0;width:28px;height:28px;border-radius:50%;font-size:16px;cursor:pointer;">✕</button>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;"><img src="icons/icon-72x72.png" style="width:48px;height:48px;border-radius:8px;"><div><div style="font-family:'Spectral','Georgia',serif;font-size:20px;font-weight:700;color:var(--accent);">Installer NéoNote</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">Ajoutez l'app à votre écran d'accueil</div></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;"><div style="width:32px;height:32px;background:rgba(245,166,35,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">⬆️</div><div><div style="font-size:13px;font-weight:600;color:#e8e8f0;">Appuyez sur <span style="color:#f5a623;">Partager</span></div><div style="font-size:11px;color:#7070a0;">Le bouton en bas de Safari</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;"><div style="width:32px;height:32px;background:rgba(245,166,35,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">➕</div><div><div style="font-size:13px;font-weight:600;color:#e8e8f0;">Puis <span style="color:#f5a623;">"Sur l'écran d'accueil"</span></div><div style="font-size:11px;color:#7070a0;">Faites défiler vers le bas</div></div></div>
+      <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.04);border-radius:10px;padding:12px;"><div style="width:32px;height:32px;background:rgba(46,204,113,0.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px;">✅</div><div><div style="font-size:13px;font-weight:600;color:#e8e8f0;">Confirmez avec <span style="color:#2ecc71;">"Ajouter"</span></div><div style="font-size:11px;color:#7070a0;">Plein écran, sans Safari</div></div></div>
+    </div>
+    <div style="text-align:center;margin-top:12px;font-size:20px;animation:bounce 1.5s infinite;">⬇️</div>
+  </div>
+</div>
+
+<!-- MODAL CRITÈRES D'APPRÉCIATION -->
+<div class="modal-overlay" id="modal-criteres">
+  <div class="modal">
+    <div class="modal-title">💬 Critères d'Appréciation</div>
+    <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;line-height:1.5;">Ces critères sont partagés et synchronisés entre tous les instructeurs. Chaque critère ajouté est immédiatement disponible dans les menus déroulants.</p>
+    <div id="criteres-list-modal" style="max-height:260px;overflow-y:auto;margin-bottom:14px;"></div>
+    <label>Nouveau critère</label>
+    <div style="display:flex;gap:8px;">
+      <input type="text" id="nouveau-critere-input" placeholder="ex : Bonne maîtrise du freinage d'urgence..." style="flex:1;margin-bottom:0;" maxlength="120" onkeydown="if(event.key==='Enter')ajouterCritere()">
+      <button class="btn btn-primary btn-sm" style="width:auto;flex-shrink:0;" onclick="ajouterCritere()">+ Ajouter</button>
+    </div>
+    <div id="critere-add-error" style="color:var(--danger);font-size:12px;margin-top:6px;min-height:16px;"></div>
+    <button class="btn btn-secondary" style="margin-top:16px;" onclick="closeModal('modal-criteres')">✕ Fermer</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════
+// FIREBASE CONFIG
+// ══════════════════════════════════════════
+const FIREBASE_DEFAULT={
+  apiKey:"AIzaSyAxVR_fworWOLzVPKOjQeLnX96_Xlgmx-I",
+  authDomain:"cnfcf-1001d.firebaseapp.com",
+  databaseURL:"https://cnfcf-1001d-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId:"cnfcf-1001d",
+  storageBucket:"cnfcf-1001d.firebasestorage.app",
+  messagingSenderId:"512198796226",
+  appId:"1:512198796226:web:307081aad3f327a1f86c5b"
+};
+
+const GRADES=['Colonel','Lieutenant-Colonel',"Chef d'escadron",'Capitaine','Lieutenant','Major','Adjudant-Chef','Adjudant','Maréchal des Logis-Chef','Garde','Gendarme'];
+const ROLES={admin:'👑 Administrateur',chef:'🏅 Chef de Centre',dir:'🎯 Directeur de stage',instructeur:'🏍 Instructeur',detache:'🔧 Instructeur détaché'};
+const ROLE_ICONS={admin:'👑',chef:'🏍',dir:'🎯',instructeur:'🏍',detache:'🏍'};
+const ROLE_AV={admin:'av-admin',chef:'av-chef',dir:'av-dir',instructeur:'av-instr',detache:'av-det'};
+const ROLE_BADGE={admin:'rb-admin',chef:'rb-admin',dir:'rb-dir',instructeur:'rb-instr',detache:'rb-det'};
+function isSuperAdmin(){return currentUser&&(currentUser.role==='admin'||currentUser.role==='chef');}
+function needsPassword(role){return role==='admin'||role==='chef'||role==='dir'||role==='instructeur'||role==='detache';}
+
+// ══ STATE ══
+let db=null,fbConfig={},fbInitialized=false;
+let profiles={};          // uid -> profil
+let sessions=[];
+let stages={};            // id -> {id, nom, instructeursIds[], stagiaires[]}
+let currentUser=null;     // profil connecté
+let selectedProfileId=null;
+let currentMeteo='';
+let stagiairesData=[];
+let rapportTexte='';
+let shareTexte='',shareTitre='';
+let filtreHistorique='tous';
+let filtreStagiairesStage='tous';
+let editSessionId=null;
+let suiviTextePartage='';
+let currentBareme=16;   // Barème actif : 16, 14 ou 12
+let criteres=[];        // Critères d'appréciation partagés [{id, texte, auteur, createdAt}]
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function formatDate(d){if(!d)return'?';const[y,m,j]=d.split('-');return`${j}/${m}/${y}`;}
+function getMeteoEmoji(m){if(!m)return'';if(m.includes('Soleil'))return'☀️';if(m.includes('Nuag'))return'⛅';if(m.includes('Pluie'))return'🌧️';if(m.includes('humide'))return'💧';if(m.includes('Brouillard'))return'🌫️';if(m.includes('Neige')||m.includes('Verglas'))return'❄️';return'🌡️';}
+function getNoteColor(n,bareme){
+  bareme=bareme||currentBareme||16;
+  const pct=n/bareme;
+  if(pct>=0.875)return'#1a7a4a'; // vert
+  if(pct>=0.6875)return'#b45309'; // orange
+  if(pct>=0.5)return'#d97706';    // orange clair
+  return'#c1121f';                // rouge
+}
+
+function setBareme(val,btn){
+  currentBareme=val;
+  document.querySelectorAll('.bareme-btn').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  // Recalibrer les notes si elles dépassent le nouveau barème
+  stagiairesData.forEach(s=>{if(s.note>val)s.note=val;});
+  renderStagiaires();
+}
+function hashPw(pw){// Simple hash (non-cryptographique, suffisant pour usage interne)
+  let h=0;for(let i=0;i<pw.length;i++){h=((h<<5)-h)+pw.charCodeAt(i);h|=0;}return h.toString(36);}
+function fullName(p){return`${p.grade?p.grade+' ':''} ${p.prenom||''} ${p.nom||''}`.trim();}
+function showPage(name,tab){document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));document.getElementById('page-'+name).classList.add('active');if(tab)tab.classList.add('active');if(name==='historique')renderHistorique();if(name==='stagiaires')renderStagiairesTab();if(name==='export')renderExportPage();if(name==='admin')renderAdminPage();if(name==='stages'){renderStagesParams();renderStagesInSettings&&renderStagesInSettings();}if(name==='parametres')renderSettingsPage();}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function showToast(msg,dur=3000){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),dur);}
+function canEdit(session){
+  if(!currentUser)return false;
+  if(isSuperAdmin())return true;
+  if(currentUser.role==='dir')return true; // dir peut modifier toutes
+  return false;
+}
+function canDelete(session){
+  if(!currentUser)return false;
+  if(isSuperAdmin())return true;
+  return session.instructeurId===currentUser.uid;
+}
+
+// ══════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════
+function loadFirebaseConfig(){
+  const fc=localStorage.getItem('cnfcf_firebase');
+  fbConfig=fc?JSON.parse(fc):{...FIREBASE_DEFAULT};
+}
+function saveFirebaseConfig(){
+  fbConfig={apiKey:document.getElementById('fb-apiKey').value.trim(),authDomain:document.getElementById('fb-authDomain').value.trim(),databaseURL:document.getElementById('fb-databaseURL').value.trim(),projectId:document.getElementById('fb-projectId').value.trim()};
+  localStorage.setItem('cnfcf_firebase',JSON.stringify(fbConfig));
+  if(fbConfig.apiKey&&fbConfig.databaseURL)initFirebase();
+}
+function initFirebase(){
+  if(!fbConfig.apiKey||!fbConfig.databaseURL){setSyncDot('');return;}
+  try{
+    if(firebase.apps.length>0)firebase.apps[0].delete().then(startFirebase);
+    else startFirebase();
+  }catch(e){startFirebase();}
+}
+function startFirebase(){
+  try{
+    firebase.initializeApp({apiKey:fbConfig.apiKey,authDomain:fbConfig.authDomain,databaseURL:fbConfig.databaseURL,projectId:fbConfig.projectId});
+    db=firebase.database();fbInitialized=true;
+    setSyncDot('syncing');
+
+    // Profils
+    db.ref('profiles').on('value',snap=>{
+      profiles=snap.val()||{};
+      renderLoginProfiles();
+      if(currentUser&&profiles[currentUser.uid])currentUser={...profiles[currentUser.uid],uid:currentUser.uid};
+    });
+    // Sessions
+    db.ref('sessions').on('value',snap=>{
+      const data=snap.val();
+      sessions=data?Object.values(data).sort((a,b)=>b.createdAt>a.createdAt?1:-1):[];
+      localStorage.setItem('cnfcf_sessions',JSON.stringify(sessions));
+      if(document.getElementById('app').style.display!=='none'){renderHistorique();renderExportPage();}
+      setSyncDot('online');setFbStatus('<span style="color:var(--success)">✅ Connecté !</span>');
+    },()=>{setSyncDot('');setFbStatus('<span style="color:var(--danger)">❌ Erreur</span>');});
+    // Stages (objets enrichis)
+    db.ref('stages').on('value',snap=>{
+      const data=snap.val();
+      if(!data){
+        stages={};
+      } else if(typeof Object.values(data)[0]==='string'){
+        // Migration depuis ancien format (tableau de strings)
+        stages={};
+        Object.values(data).forEach(nom=>{
+          if(typeof nom==='string'){
+            const id='stg_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,4);
+            stages[id]={id,nom,instructeursIds:[],stagiaires:[]};
+          }
+        });
+        // Re-push dans le bon format
+        if(fbInitialized&&db)db.ref('stages').set(stages);
+      } else {
+        stages=data;
+      }
+      localStorage.setItem('cnfcf_stages',JSON.stringify(stages));
+      renderStageSelect();renderStagesModals();renderExportPage();
+      // Rafraîchir la page stages si active
+      if(document.getElementById('page-stages')?.classList.contains('active'))renderStagesParams();
+    });
+    // Critères d'appréciation partagés
+    db.ref('criteres').on('value',snap=>{
+      const data=snap.val();
+      criteres=data?Object.values(data).sort((a,b)=>a.createdAt>b.createdAt?1:-1):[];
+      localStorage.setItem('cnfcf_criteres',JSON.stringify(criteres));
+      // Refresh selects ouverts si page active
+      document.querySelectorAll('.critere-select').forEach(sel=>refreshCritereSelect(sel));
+    });
+    db.ref('.info/connected').on('value',snap=>setSyncDot(snap.val()?'online':''));
+  }catch(e){console.error(e);setSyncDot('');setFbStatus('<span style="color:var(--danger)">❌ Config invalide</span>');}
+}
+function setSyncDot(s){const d=document.getElementById('sync-dot');if(d)d.className='sync-dot'+(s?' '+s:'');}
+function setFbStatus(h){const el=document.getElementById('firebase-connect-status');if(el)el.innerHTML=h;}
+function pushSession(s){if(!fbInitialized||!db)return false;setSyncDot('syncing');db.ref('sessions/'+s.id).set(s).then(()=>{setSyncDot('online');}).catch(()=>{setSyncDot('');showToast('⚠️ Sauvegardé localement');});return true;}
+function deleteSessionFb(id){if(fbInitialized&&db)db.ref('sessions/'+id).remove();}
+function pushStages(){if(fbInitialized&&db)db.ref('stages').set(stages);localStorage.setItem('cnfcf_stages',JSON.stringify(stages));}
+function pushStage(s){
+  stages[s.id]=s;
+  localStorage.setItem('cnfcf_stages',JSON.stringify(stages));
+  if(fbInitialized&&db){
+    setSyncDot('syncing');
+    db.ref('stages/'+s.id).set(s)
+      .then(()=>setSyncDot('online'))
+      .catch(()=>{setSyncDot('');showToast('⚠️ Stage sauvegardé localement');});
+  } else {
+    showToast('⚠️ Firebase non connecté — stage sauvegardé localement');
+  }
+}
+function deleteStageFirebase(id){if(fbInitialized&&db)db.ref('stages/'+id).remove();}
+function pushProfile(uid,data){if(fbInitialized&&db)db.ref('profiles/'+uid).set(data);}
+function deleteProfileFb(uid){if(fbInitialized&&db)db.ref('profiles/'+uid).remove();}
+function pushCritere(c){if(fbInitialized&&db){db.ref('criteres/'+c.id).set(c);}criteres=criteres.filter(x=>x.id!==c.id);criteres.push(c);localStorage.setItem('cnfcf_criteres',JSON.stringify(criteres));}
+function deleteCritere(id){if(fbInitialized&&db)db.ref('criteres/'+id).remove();criteres=criteres.filter(x=>x.id!==id);localStorage.setItem('cnfcf_criteres',JSON.stringify(criteres));}
+
+// ══════════════════════════════════════════
+// CONNEXION / PROFILS
+// ══════════════════════════════════════════
+// Ordre de tri des rôles : instructeur en premier, puis detache, puis dir, puis chef/admin en dernier
+const ROLE_SORT={instructeur:0,detache:1,dir:2,chef:3,admin:4};
+// Ordre de tri des grades (du plus élevé au plus bas)
+const GRADE_SORT={
+  'Major':0,
+  'Adjudant-Chef':1,
+  'Adjudant':2,
+  'Maréchal des Logis-Chef':3,
+  'Gendarme':4,
+  'Garde':5,
+  'Lieutenant':6,
+  'Capitaine':7,
+  "Chef d'escadron":8,
+  'Lieutenant-Colonel':9,
+  'Colonel':10,
+};
+function gradeRank(g){return g&&GRADE_SORT[g]!==undefined?GRADE_SORT[g]:99;}
+
+function renderLoginProfiles(){
+  const list=document.getElementById('profile-list-login');
+  const q=(document.getElementById('login-search-input')?.value||'').toLowerCase();
+  let pArr=Object.entries(profiles);
+  // Filtre recherche
+  if(q)pArr=pArr.filter(([,p])=>(fullName(p)+' '+(p.grade||'')+' '+(p.role||'')).toLowerCase().includes(q));
+  // Tri : rôle → grade → alphabétique
+  pArr.sort(([,a],[,b])=>{
+    const rd=(ROLE_SORT[a.role]??99)-(ROLE_SORT[b.role]??99);
+    if(rd!==0)return rd;
+    const gd=gradeRank(a.grade)-gradeRank(b.grade);
+    if(gd!==0)return gd;
+    return fullName(a).localeCompare(fullName(b),'fr');
+  });
+  if(!pArr.length){
+    list.innerHTML='<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">'+(q?'Aucun résultat':'Aucun profil — contactez votre administrateur.')+'</div>';
+    return;
+  }
+  const getRoleLabel=(r)=>r==='admin'?'Admin':r==='chef'?'Chef de Centre':r==='dir'?'Dir. Stage':r==='detache'?'Détaché':'Instructeur';
+  const getShortName=(p)=>[p.prenom,p.nom].filter(Boolean).join(' ')||'Sans nom';
+
+  list.innerHTML=pArr.map(([uid,p])=>`
+    <div class="profile-entry">
+      <div class="profile-item${selectedProfileId===uid?' selected':''}" id="pi-${uid}" onclick="selectProfile('${uid}')">
+        <div class="profile-avatar ${ROLE_AV[p.role]||'av-instr'}">${ROLE_ICONS[p.role]||'🏍'}</div>
+        <div class="profile-info">
+          <div class="profile-name">${esc(getShortName(p))}</div>
+          <div class="profile-meta">${esc(p.grade||'—')}</div>
+        </div>
+        <span class="role-badge ${ROLE_BADGE[p.role]||'rb-instr'}">${getRoleLabel(p.role)}</span>
+      </div>
+      <div class="pw-inline" id="pw-inline-${uid}">
+        <div class="pw-inline-inner">
+          <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">🔒 Mot de passe — ${esc(getShortName(p))}</div>
+          <input type="password" id="pw-input-${uid}" class="pw-inline-input" placeholder="Votre mot de passe..." onkeydown="if(event.key==='Enter')validerConnexion()">
+          <div class="login-error" id="pw-error-${uid}" style="min-height:16px;margin-top:4px;"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function filterLoginProfiles(q){renderLoginProfiles();}
+
+function selectProfile(uid){
+  // Déselectionner l'ancien
+  if(selectedProfileId&&selectedProfileId!==uid){
+    document.getElementById(`pi-${selectedProfileId}`)?.classList.remove('selected');
+    const old=document.getElementById(`pw-inline-${selectedProfileId}`);
+    if(old)old.classList.remove('open');
+  }
+  selectedProfileId=uid;
+  // Sélectionner le nouveau
+  document.getElementById(`pi-${uid}`)?.classList.add('selected');
+  const p=profiles[uid];
+  const pwBox=document.getElementById(`pw-inline-${uid}`);
+  if(pwBox){
+    pwBox.classList.add('open');
+    setTimeout(()=>document.getElementById(`pw-input-${uid}`)?.focus(),80);
+  }
+  document.getElementById('login-error').textContent='';
+  // Masquer l'ancien pw-section du bas (plus utilisé)
+  document.getElementById('pw-field')?.classList.remove('show');
+}
+
+function validerConnexion(){
+  if(!selectedProfileId){document.getElementById('login-error').textContent='⚠️ Sélectionnez un profil';return;}
+  const p=profiles[selectedProfileId];
+  if(!p){document.getElementById('login-error').textContent='⚠️ Profil introuvable';return;}
+  const errEl=document.getElementById(`pw-error-${selectedProfileId}`)||document.getElementById('login-error');
+  if(needsPassword(p.role)){
+    const pwInput=document.getElementById(`pw-input-${selectedProfileId}`)||document.getElementById('login-pw');
+    const pw=pwInput?.value||'';
+    if(!pw){errEl.textContent='⚠️ Mot de passe requis';return;}
+    if(hashPw(pw)!==p.pwHash){errEl.textContent='❌ Mot de passe incorrect';return;}
+  }
+  currentUser={...p,uid:selectedProfileId};
+  localStorage.setItem('cnfcf_current_user',selectedProfileId);
+  lancerApp();
+}
+
+function lancerApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='block';
+  // Header
+  document.getElementById('header-avatar').textContent=ROLE_ICONS[currentUser.role]||'🏍';
+  document.getElementById('header-name').textContent=`${currentUser.prenom||''} ${currentUser.nom||''}`.trim();
+  document.getElementById('instructor-name-display').textContent=fullName(currentUser);
+  document.getElementById('instr-role-icon').textContent=ROLE_ICONS[currentUser.role]||'🏍';
+  // Onglet Admin : admin et Chef de Centre uniquement
+  const navAdmin=document.getElementById('nav-admin');
+  if(isSuperAdmin())navAdmin.style.display='';
+  else navAdmin.style.display='none';
+  // Onglet Stages : admin, Chef de Centre, Directeur de stage et Instructeur (pas détaché)
+  const navStages=document.getElementById('nav-stages');
+  if(currentUser.role==='admin'||currentUser.role==='chef'||currentUser.role==='dir'||currentUser.role==='instructeur')navStages.style.display='';
+  else navStages.style.display='none';
+  // Firebase : admin uniquement
+  const fbCard=document.getElementById('firebase-card');
+  if(fbCard)fbCard.style.display=currentUser.role==='admin'?'':'none';
+  // Onglets visibles selon le rôle (détaché = Session + Réglages uniquement)
+  const isDetache=currentUser.role==='detache';
+  document.querySelectorAll('.nav-tab').forEach(tab=>{
+    const id=tab.id;
+    if(id==='nav-admin'||id==='nav-stages')return; // déjà gérés ci-dessus
+    const p=tab.getAttribute('onclick')||'';
+    if(isDetache){tab.style.display=(p.includes("'nouvelle'")||p.includes("'parametres'"))?'':'none';}
+    else{tab.style.display='';}
+  });
+  // Masquer le sélecteur de barème pour les détachés (pas de note chiffrée)
+  const baremeSelector=document.getElementById('bareme-selector');
+  const baremeLabel=baremeSelector?.previousElementSibling;
+  if(currentUser.role==='detache'){
+    if(baremeSelector)baremeSelector.style.display='none';
+    if(baremeLabel&&baremeLabel.tagName==='LABEL')baremeLabel.style.display='none';
+  } else {
+    if(baremeSelector)baremeSelector.style.display='';
+    if(baremeLabel&&baremeLabel.tagName==='LABEL')baremeLabel.style.display='';
+  }
+  // Init session form
+  document.getElementById('session-date').value=new Date().toISOString().split('T')[0];
+  buildStagiairesLibres();renderStageSelect();renderHistorique();renderExportPage();renderSettingsPage();
+  // Firebase config fields
+  ['apiKey','authDomain','databaseURL','projectId'].forEach(k=>{const el=document.getElementById('fb-'+k);if(el)el.value=fbConfig[k]||'';});
+}
+
+function seDeconnecter(){
+  currentUser=null;selectedProfileId=null;
+  localStorage.removeItem('cnfcf_current_user');
+  editSessionId=null;rapportTexte='';shareTexte='';
+  closeModal('modal-user-menu');
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('pw-field')?.classList.remove('show');
+  document.getElementById('login-pw').value='';
+  document.getElementById('login-error').textContent='';
+  // Fermer toutes les boîtes mdp inline
+  document.querySelectorAll('.pw-inline').forEach(el=>el.classList.remove('open'));
+  document.querySelectorAll('.pw-inline-input').forEach(el=>{el.value='';});
+  renderLoginProfiles();
+}
+
+function showCreateProfile(){
+  document.getElementById('login-step1').style.display='none';
+  document.getElementById('login-step2').style.display='block';
+  document.getElementById('login-step-title').textContent='Nouveau profil';
+}
+function backToLogin(){
+  document.getElementById('login-step2').style.display='none';
+  document.getElementById('login-step1').style.display='block';
+  document.getElementById('login-step-title').textContent='Choisissez votre profil';
+}
+function togglePwFields(){
+  const role=document.getElementById('new-role').value;
+  const needsPw=role==='admin'||role==='dir';
+  document.getElementById('pw-create-fields').style.display=needsPw?'block':'none';
+}
+
+function creerProfil(){
+  const role=document.getElementById('new-role').value;
+  const grade=document.getElementById('new-grade').value;
+  const prenom=document.getElementById('new-prenom').value.trim();
+  const nom=document.getElementById('new-nom').value.trim();
+  const err=document.getElementById('create-error');
+  if(!role){err.textContent='⚠️ Choisissez un rôle';return;}
+  if(!prenom&&!nom){err.textContent='⚠️ Renseignez au moins un prénom ou un nom';return;}
+  let pwHash=null;
+  if(role==='admin'||role==='dir'){
+    const pw=document.getElementById('new-pw').value;
+    const pw2=document.getElementById('new-pw2').value;
+    if(!pw){err.textContent='⚠️ Mot de passe requis pour ce rôle';return;}
+    if(pw!==pw2){err.textContent='❌ Les mots de passe ne correspondent pas';return;}
+    if(pw.length<4){err.textContent='⚠️ Mot de passe trop court (min 4 car.)';return;}
+    pwHash=hashPw(pw);
+  }
+  const uid='u_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+  const profil={uid,role,grade,prenom,nom,createdAt:new Date().toISOString()};
+  if(pwHash)profil.pwHash=pwHash;
+  pushProfile(uid,profil);
+  err.textContent='';
+  showToast('✅ Profil créé !');
+  // Connexion auto
+  selectedProfileId=uid;
+  profiles[uid]=profil;
+  if(role!=='admin'&&role!=='dir'){
+    currentUser={...profil,uid};
+    localStorage.setItem('cnfcf_current_user',uid);
+    backToLogin();
+    setTimeout(lancerApp,300);
+  }else{
+    backToLogin();
+    setTimeout(()=>{
+      renderLoginProfiles();
+      selectProfile(uid);
+      showToast('Saisissez votre mot de passe pour vous connecter');
+    },300);
+  }
+}
+
+function toggleCpPwFields(){
+  const role=document.getElementById('cp-role').value;
+  document.getElementById('cp-pw-fields').style.display=needsPassword(role)?'block':'none';
+}
+
+function creerProfilAdmin(){
+  if(!isSuperAdmin()){showToast('⚠️ Permission refusée');return;}
+  const role=document.getElementById('cp-role').value;
+  const grade=document.getElementById('cp-grade').value;
+  const prenom=document.getElementById('cp-prenom').value.trim();
+  const nom=document.getElementById('cp-nom').value.trim();
+  const err=document.getElementById('cp-error');
+  err.textContent='';
+  if(!role){err.textContent='⚠️ Choisissez un rôle';return;}
+  if(!prenom&&!nom){err.textContent='⚠️ Renseignez au moins un prénom ou un nom';return;}
+  let pwHash=null;
+  if(needsPassword(role)){
+    const pw=document.getElementById('cp-pw').value;
+    const pw2=document.getElementById('cp-pw2').value;
+    if(!pw){err.textContent='⚠️ Mot de passe requis pour ce rôle';return;}
+    if(pw!==pw2){err.textContent='❌ Les mots de passe ne correspondent pas';return;}
+    if(pw.length<4){err.textContent='⚠️ Mot de passe trop court (min 4 car.)';return;}
+    pwHash=hashPw(pw);
+  }
+  const uid='u_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,6);
+  const profil={uid,role,grade,prenom,nom,createdAt:new Date().toISOString()};
+  if(pwHash)profil.pwHash=pwHash;
+  pushProfile(uid,profil);
+  // Reset form
+  document.getElementById('cp-role').value='';
+  document.getElementById('cp-grade').value='';
+  document.getElementById('cp-prenom').value='';
+  document.getElementById('cp-nom').value='';
+  document.getElementById('cp-pw').value='';
+  document.getElementById('cp-pw2').value='';
+  document.getElementById('cp-pw-fields').style.display='none';
+  closeModal('modal-creer-profil');
+  showToast(`✅ Profil créé !`);
+  renderAdminPage();
+}
+
+// ══════════════════════════════════════════
+// MENU UTILISATEUR
+// ══════════════════════════════════════════
+function renderUserMenu(){
+  if(!currentUser)return;
+  document.getElementById('user-menu-content').innerHTML=`
+    <div style="text-align:center;padding:10px 0 20px;">
+      <div style="font-size:48px;margin-bottom:8px;">${ROLE_ICONS[currentUser.role]||'🏍'}</div>
+      <div style="font-family:'Spectral','Georgia',serif;font-size:22px;font-weight:700;color:var(--accent);">${fullName(currentUser)}</div>
+      <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${currentUser.grade||''}</div>
+      <span class="role-badge ${ROLE_BADGE[currentUser.role]||'rb-instr'}" style="margin-top:8px;display:inline-block;">${ROLES[currentUser.role]||'Instructeur'}</span>
+    </div>`;
+}
+
+// ══════════════════════════════════════════
+// MON PROFIL — ÉDITION
+// ══════════════════════════════════════════
+function renderSettingsPage(){
+  if(!currentUser)return;
+  const el=document.getElementById('mon-profil-display');
+  el.innerHTML=`<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+    <div style="font-size:40px;">${ROLE_ICONS[currentUser.role]||'🏍'}</div>
+    <div><div style="font-size:18px;font-weight:600;">${fullName(currentUser)}</div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:4px;">${currentUser.grade||'— grade non renseigné —'}</div>
+    <span class="role-badge ${ROLE_BADGE[currentUser.role]||'rb-instr'}" style="margin-top:6px;display:inline-block;">${ROLES[currentUser.role]||'Instructeur'}</span></div></div>`;
+  const needsPwEdit=needsPassword(currentUser.role);
+  document.getElementById('edit-pw-section').style.display=needsPwEdit?'block':'none';
+  const sc=document.getElementById('params-stages-card');
+  if(isSuperAdmin()||currentUser.role==='dir'){sc.style.display='block';renderStagesInSettings();}
+  else sc.style.display='none';
+  // Pré-remplir modal edit
+  document.getElementById('edit-grade').value=currentUser.grade||'';
+  document.getElementById('edit-prenom').value=currentUser.prenom||'';
+  document.getElementById('edit-nom').value=currentUser.nom||'';
+}
+
+function sauvegarderMonProfil(){
+  const grade=document.getElementById('edit-grade').value;
+  const prenom=document.getElementById('edit-prenom').value.trim();
+  const nom=document.getElementById('edit-nom').value.trim();
+  const updated={...currentUser,grade,prenom,nom};
+  if(needsPassword(currentUser.role)){
+    const pw=document.getElementById('edit-pw').value;
+    const pw2=document.getElementById('edit-pw2').value;
+    if(pw){
+      if(pw!==pw2){showToast('❌ Mots de passe différents');return;}
+      if(pw.length<4){showToast('⚠️ Trop court (min 4)');return;}
+      updated.pwHash=hashPw(pw);
+    }
+  }
+  pushProfile(currentUser.uid,updated);
+  currentUser={...updated};
+  document.getElementById('header-name').textContent=`${prenom||''} ${nom||''}`.trim();
+  document.getElementById('instructor-name-display').textContent=fullName(currentUser);
+  closeModal('modal-edit-profil');
+  renderSettingsPage();
+  showToast('✅ Profil mis à jour !');
+}
+
+// ══════════════════════════════════════════
+// ADMIN — GESTION PROFILS
+// ══════════════════════════════════════════
+function renderAdminPage(){
+  const el=document.getElementById('admin-profiles-list');
+  const pArr=Object.entries(profiles).sort((a,b)=>fullName(a[1]).localeCompare(fullName(b[1]),'fr'));
+  const getRoleLabel=(r)=>r==='admin'?'Admin':r==='chef'?'Chef de Centre':r==='dir'?'Dir. Stage':r==='detache'?'Détaché':'Instructeur';
+  if(!pArr.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;">Aucun profil.</p>';}
+  else{el.innerHTML=pArr.map(([uid,p])=>`
+    <div class="profil-card">
+      <div class="profile-avatar ${ROLE_AV[p.role]||'av-instr'}">${ROLE_ICONS[p.role]||'🏍'}</div>
+      <div class="pc-info">
+        <div class="pc-name">${fullName(p)||'Sans nom'}</div>
+        <div class="pc-detail">${p.grade||''} — <span class="${ROLE_BADGE[p.role]||'rb-instr'}">${getRoleLabel(p.role)}</span></div>
+      </div>
+      <div class="pc-actions">
+        <button class="btn btn-warning btn-sm" onclick="adminEditUser('${uid}')">✏️</button>
+      </div>
+    </div>`).join('');}
+}
+
+function adminEditUser(uid){
+  const p=profiles[uid];if(!p)return;
+  document.getElementById('admin-edit-uid').value=uid;
+  document.getElementById('admin-edit-role').value=p.role||'instructeur';
+  document.getElementById('admin-edit-grade').value=p.grade||'';
+  document.getElementById('admin-edit-prenom').value=p.prenom||'';
+  document.getElementById('admin-edit-nom').value=p.nom||'';
+  document.getElementById('admin-edit-pw').value='';
+  document.getElementById('admin-edit-titre').textContent=`✏️ ${fullName(p)||uid}`;
+  document.getElementById('admin-del-user-btn').onclick=()=>adminSupprimerProfil(uid);
+  openModal('modal-admin-edit-user');
+}
+
+function adminSauvegarderProfil(){
+  const uid=document.getElementById('admin-edit-uid').value;
+  const existing=profiles[uid]||{};
+  const updated={
+    ...existing,uid,
+    role:document.getElementById('admin-edit-role').value,
+    grade:document.getElementById('admin-edit-grade').value,
+    prenom:document.getElementById('admin-edit-prenom').value.trim(),
+    nom:document.getElementById('admin-edit-nom').value.trim(),
+  };
+  const newPw=document.getElementById('admin-edit-pw').value;
+  if(newPw){
+    if(newPw.length<4){showToast('⚠️ Mot de passe trop court');return;}
+    updated.pwHash=hashPw(newPw);
+  }
+  // Si rôle passé à admin/chef/dir sans mdp existant ni nouveau
+  if(needsPassword(updated.role)&&!updated.pwHash&&!newPw){
+    showToast('⚠️ Un mot de passe est requis pour Admin/Directeur');return;}
+  pushProfile(uid,updated);
+  closeModal('modal-admin-edit-user');
+  showToast('✅ Profil mis à jour !');
+}
+
+function adminSupprimerProfil(uid){
+  if(uid===currentUser?.uid){showToast('⚠️ Vous ne pouvez pas supprimer votre propre profil');return;}
+  if(!confirm(`Supprimer ce profil ? Les sessions créées par cet utilisateur seront conservées.`))return;
+  deleteProfileFb(uid);
+  closeModal('modal-admin-edit-user');
+  showToast('🗑 Profil supprimé');
+}
+
+// ══════════════════════════════════════════
+// STAGES — SYSTÈME ENRICHI
+// ══════════════════════════════════════════
+function stagesArr(){return Object.values(stages).sort((a,b)=>a.nom.localeCompare(b.nom,'fr'));}
+function getStageById(id){return stages[id]||null;}
+function getStageByNom(nom){return Object.values(stages).find(s=>s.nom===nom)||null;}
+
+function renderStageSelect(){
+  const sel=document.getElementById('session-stage');if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML='<option value="">— Choisir un stage —</option>';
+  if(!currentUser)return; // pas encore connecté
+  const uid=currentUser.uid;
+  const role=currentUser.role;
+  // Admin, chef de centre et directeur de stage voient TOUS les stages sans restriction
+  const voitTout=(role==='admin'||role==='chef'||role==='dir');
+  stagesArr().forEach(s=>{
+    const autorise=voitTout
+      ||!s.instructeursIds
+      ||s.instructeursIds.length===0
+      ||s.instructeursIds.includes(uid);
+    if(!autorise)return;
+    sel.innerHTML+=`<option value="${s.id}"${cur===s.id?' selected':''}>${esc(s.nom)}</option>`;
+  });
+}
+
+function onStageChange(){
+  const id=document.getElementById('session-stage').value;
+  renderStagiairesSelectionUI(id);
+}
+
+function renderStagiairesSelectionUI(stageId){
+  const zone=document.getElementById('stagiaires-selection-zone');
+  if(!zone)return;
+  const stage=getStageById(stageId);
+  if(!stage||!stage.stagiaires||stage.stagiaires.length===0){
+    // Pas de liste → nombre libre
+    zone.innerHTML=`
+      <label>Nombre de Stagiaires</label>
+      <select id="session-nb-stagiaires" onchange="buildStagiairesLibres()" style="margin-bottom:0;">
+        ${[...Array(30)].map((_,i)=>`<option value="${i+1}"${i+5?' selected':''}>` + (i+1) + '</option>').join('')}
+      </select>`;
+    document.getElementById('session-nb-stagiaires') && (document.getElementById('session-nb-stagiaires').value='6');
+    buildStagiairesLibres();
+    return;
+  }
+  // Liste de stagiaires définie → cases à cocher
+  const checked=new Set(stagiairesData.map(s=>s.nom).filter(Boolean));
+  zone.innerHTML=`
+    <label>Sélectionner les stagiaires à évaluer <span style="color:var(--text-muted);font-weight:400;">(${stage.stagiaires.length} inscrits)</span></label>
+    <div style="display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="selectAllStagiaires('${stageId}')">Tous</button>
+      <button class="btn btn-secondary btn-sm" onclick="deselectAllStagiaires()">Aucun</button>
+    </div>
+    <div class="stagiaires-checklist" id="stag-checklist">
+      ${stage.stagiaires.map(num=>`
+        <div class="stag-check-item${checked.has(String(num))?' checked':''}" onclick="toggleStagCheck(this,'${num}')" data-num="${num}">
+          <div class="stag-check-box">${checked.has(String(num))?'✓':''}</div>
+          <span class="stag-check-num">N° ${num}</span>
+        </div>`).join('')}
+    </div>
+    <div id="stag-check-count" style="font-size:12px;color:var(--accent);font-weight:700;margin-top:8px;">${checked.size} stagiaire(s) sélectionné(s)</div>`;
+  // Rebuild stagiaires depuis sélection actuelle
+  buildStagiairesDepuisSelection();
+}
+
+function toggleStagCheck(el,num){
+  el.classList.toggle('checked');
+  const box=el.querySelector('.stag-check-box');
+  box.textContent=el.classList.contains('checked')?'✓':'';
+  buildStagiairesDepuisSelection();
+  const count=document.querySelectorAll('.stag-check-item.checked').length;
+  const countEl=document.getElementById('stag-check-count');
+  if(countEl)countEl.textContent=`${count} stagiaire(s) sélectionné(s)`;
+}
+
+function selectAllStagiaires(stageId){
+  const stage=getStageById(stageId);if(!stage)return;
+  document.querySelectorAll('.stag-check-item').forEach(el=>{
+    el.classList.add('checked');
+    const box=el.querySelector('.stag-check-box');
+    if(box)box.textContent='✓';
+  });
+  buildStagiairesDepuisSelection();
+  const countEl=document.getElementById('stag-check-count');
+  if(countEl)countEl.textContent=`${stage.stagiaires.length} stagiaire(s) sélectionné(s)`;
+}
+
+function deselectAllStagiaires(){
+  document.querySelectorAll('.stag-check-item').forEach(el=>{
+    el.classList.remove('checked');
+    const box=el.querySelector('.stag-check-box');
+    if(box)box.textContent='';
+  });
+  buildStagiairesDepuisSelection();
+  const countEl=document.getElementById('stag-check-count');
+  if(countEl)countEl.textContent='0 stagiaire(s) sélectionné(s)';
+}
+
+function buildStagiairesDepuisSelection(){
+  const selected=[...document.querySelectorAll('.stag-check-item.checked')].map(el=>el.dataset.num);
+  const old=[...stagiairesData];
+  const defNote=Math.round(currentBareme*0.6875);
+  stagiairesData=selected.map(num=>{
+    const existing=old.find(s=>s.nom===String(num));
+    return existing||{nom:String(num),note:defNote,appreciation:'',appreciationCriteres:[],fauteSec:false,fauteType:'',fauteAutre:''};
+  });
+  renderStagiaires();
+}
+
+function buildStagiairesLibres(){
+  const nb=parseInt(document.getElementById('session-nb-stagiaires')?.value)||6;
+  const old=[...stagiairesData];
+  const defNote=Math.round(currentBareme*0.6875);
+  stagiairesData=Array.from({length:nb},(_,i)=>old[i]||{nom:'',note:defNote,appreciation:'',appreciationCriteres:[],fauteSec:false,fauteType:'',fauteAutre:''});
+  renderStagiaires();
+}
+
+function renderStagesModals(){
+  const el=document.getElementById('modal-stages-list');if(!el)return;
+  const arr=stagesArr();
+  if(!arr.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;">Aucun stage.</p>';return;}
+  el.innerHTML=arr.map(s=>{
+    const nbStag=s.stagiaires?.length||0;
+    const nbInstr=s.instructeursIds?.length||0;
+    return`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-weight:700;font-size:14px;">${esc(s.nom)}</span>
+        <div style="display:flex;gap:5px;">
+          <button class="btn btn-warning btn-sm" onclick="ouvrirEditionStage('${s.id}')">✏️ Éditer</button>
+          <button class="btn btn-danger btn-sm" onclick="demanderSuppressionStage('${s.id}')">🗑</button>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;font-size:11px;color:var(--text-muted);">
+        <span>🏍 ${nbStag} stagiaire(s)</span>
+        <span>👤 ${nbInstr===0?'Tous les instructeurs':nbInstr+' instructeur(s)' }</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderStagesParams(){
+  const el=document.getElementById('stages-list-params');if(!el)return;
+  const arr=stagesArr();
+  if(!arr.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;">Aucun stage.</p>';return;}
+  el.innerHTML=arr.map(s=>`<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:var(--radius);padding:10px 14px;margin-bottom:8px;">
+    <div><div style="font-weight:700;font-size:13px;">${esc(s.nom)}</div><div style="font-size:11px;color:var(--text-muted);">${s.stagiaires?.length||0} stag. · ${s.instructeursIds?.length===0?'Tous instr.':s.instructeursIds?.length+' instr.'}</div></div>
+    <div style="display:flex;gap:5px;">
+      <button class="btn btn-warning btn-sm" onclick="ouvrirEditionStage('${s.id}');closeModal&&closeModal('modal-stages')">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="demanderSuppressionStage('${s.id}')">🗑</button>
+    </div>
+  </div>`).join('');
+}
+function renderStagesInSettings(){
+  renderStagesParams(); // Rebuild params list
+  const src=document.getElementById('stages-list-params');
+  const el=document.getElementById('stages-list-params-settings');
+  if(src&&el)el.innerHTML=src.innerHTML;
+}
+
+function ajouterStageRapide(inputId){
+  const inp=document.getElementById(inputId);
+  const n=(inp?.value||'').trim();
+  if(!n){showToast('⚠️ Saisissez un nom');return;}
+  if(Object.values(stages).find(s=>s.nom===n)){showToast('⚠️ Ce stage existe déjà');return;}
+  const id='stg_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,4);
+  const s={id,nom:n,instructeursIds:[],stagiaires:[],createdAt:new Date().toISOString()};
+  pushStage(s);
+  if(inp)inp.value='';
+  showToast('✅ Stage créé !');
+  // Ouvrir directement l'édition pour compléter
+  setTimeout(()=>ouvrirEditionStage(id),300);
+}
+
+function ajouterStage(){ajouterStageRapide('new-stage-input');}
+function ajouterStageSettings(){ajouterStageRapide('new-stage-input-settings');}
+function ajouterStageModal(){ajouterStageRapide('modal-new-stage');}
+
+function ouvrirGestionStages(){renderStagesModals();openModal('modal-stages');}
+
+function demanderSuppressionStage(stageId){
+  const s=getStageById(stageId);if(!s)return;
+  const n=sessions.filter(sess=>sess.stage===s.nom||sess.stageId===stageId).length;
+  document.getElementById('del-stage-titre').textContent=`🗑 "${s.nom}"`;
+  document.getElementById('del-stage-msg').innerHTML=`Supprime <strong style="color:var(--danger)">${n} session(s)</strong>. Irréversible.`;
+  document.getElementById('del-stage-confirm').onclick=()=>supprimerStage(stageId);
+  closeModal('modal-stages');openModal('modal-del-stage');
+}
+
+function supprimerStage(stageId){
+  const s=getStageById(stageId);if(!s)return;
+  sessions.filter(sess=>sess.stage===s.nom||sess.stageId===stageId).forEach(sess=>deleteSessionFb(sess.id));
+  sessions=sessions.filter(sess=>sess.stage!==s.nom&&sess.stageId!==stageId);
+  localStorage.setItem('cnfcf_sessions',JSON.stringify(sessions));
+  delete stages[stageId];
+  deleteStageFirebase(stageId);
+  localStorage.setItem('cnfcf_stages',JSON.stringify(stages));
+  closeModal('modal-del-stage');renderHistorique();renderStageSelect();renderStagesModals();renderStagesParams();
+  showToast(`🗑 "${s.nom}" supprimé`);
+}
+
+// Buffer local pour l'édition en cours (évite les écrasements Firebase)
+let _editStagiairesBuffer = [];
+
+function ouvrirEditionStage(stageId){
+  const s=getStageById(stageId)||{id:stageId,nom:'',instructeursIds:[],stagiaires:[]};
+  // Initialiser le buffer local
+  _editStagiairesBuffer = [...(s.stagiaires||[])];
+  document.getElementById('edit-stage-id').value=stageId;
+  document.getElementById('edit-stage-titre').textContent=s.nom?`📚 ${s.nom}`:'📚 Nouveau stage';
+  document.getElementById('edit-stage-nom').value=s.nom||'';
+  // Instructeurs
+  const instrEl=document.getElementById('edit-stage-instrs');
+  const instructeurs=Object.values(profiles).filter(p=>p.role==='instructeur'||p.role==='detache'||p.role==='dir');
+  if(!instructeurs.length){instrEl.innerHTML='<p style="font-size:12px;color:var(--text-muted);">Aucun instructeur enregistré.</p>';}
+  else{instrEl.innerHTML=instructeurs.map(p=>`
+    <div class="instr-check-item${s.instructeursIds?.includes(p.uid)?' checked':''}" onclick="toggleInstrCheck(this,'${p.uid}')" data-uid="${p.uid}">
+      <div class="instr-check-box">${s.instructeursIds?.includes(p.uid)?'✓':''}</div>
+      <div style="flex:1;">
+        <div style="font-weight:600;font-size:13px;">${esc(fullName(p)||p.uid)}</div>
+        <div style="font-size:11px;color:var(--text-muted);">${p.grade||''} — ${ROLES[p.role]||p.role}</div>
+      </div>
+    </div>`).join('');}
+  // Stagiaires depuis le buffer
+  renderStagNumList(_editStagiairesBuffer);
+  closeModal('modal-stages');
+  openModal('modal-edit-stage');
+}
+
+function toggleInstrCheck(el,uid){
+  el.classList.toggle('checked');
+  const box=el.querySelector('.instr-check-box');
+  box.textContent=el.classList.contains('checked')?'✓':'';
+}
+
+function sauvegarderEditionStage(){
+  const id=document.getElementById('edit-stage-id').value;
+  const nom=document.getElementById('edit-stage-nom').value.trim();
+  if(!nom){showToast('⚠️ Indiquez un nom pour le stage');return;}
+  const instrIds=[...document.querySelectorAll('.instr-check-item.checked')].map(el=>el.dataset.uid);
+  const existing=getStageById(id)||{};
+  const s={
+    id,
+    nom,
+    instructeursIds:instrIds,
+    stagiaires:_editStagiairesBuffer,
+    createdAt:existing.createdAt||new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  pushStage(s);
+  closeModal('modal-edit-stage');
+  renderStageSelect();renderStagesModals();renderStagesParams();
+  showToast(`✅ Stage "${nom}" sauvegardé !`);
+}
+
+function renderStagNumList(nums){
+  const el=document.getElementById('edit-stage-stag-list');if(!el)return;
+  if(!nums||!nums.length){el.innerHTML='<span style="font-size:12px;color:var(--text-muted);font-style:italic;">Aucun stagiaire — ajoutez des numéros</span>';return;}
+  el.innerHTML=nums.map(n=>`<div class="stag-num-chip">N° ${n}<span class="chip-del" onclick="supprimerNumStag(${n})">✕</span></div>`).join('');
+}
+
+function supprimerNumStag(num){
+  _editStagiairesBuffer=_editStagiairesBuffer.filter(n=>n!=num&&n!==String(num)&&parseInt(n)!==parseInt(num));
+  renderStagNumList(_editStagiairesBuffer);
+}
+
+function ajouterNumerosStagiaires(){
+  const inp=document.getElementById('edit-stage-stag-input');
+  const raw=(inp.value||'').trim();
+  if(!raw)return;
+  const nums=new Set(_editStagiairesBuffer.map(n=>parseInt(n)));
+  const tokens=raw.replace(/,/g,' ').split(/\s+/).filter(Boolean);
+  tokens.forEach(part=>{
+    if(part.includes('-')){
+      const [a,b]=part.split('-').map(x=>parseInt(x.trim()));
+      if(!isNaN(a)&&!isNaN(b)&&b>=a&&(b-a)<=200){for(let i=a;i<=b;i++)nums.add(i);}
+    } else {
+      const n=parseInt(part);
+      if(!isNaN(n))nums.add(n);
+    }
+  });
+  _editStagiairesBuffer=[...nums].sort((a,b)=>a-b);
+  renderStagNumList(_editStagiairesBuffer);
+  inp.value='';
+}
+
+function buildStagiaires(){
+  // Dispatcher : si le stage a une liste, on utilise la sélection ; sinon nombre libre
+  const stageId=document.getElementById('session-stage')?.value;
+  const stage=getStageById(stageId);
+  if(stage&&stage.stagiaires&&stage.stagiaires.length>0){
+    buildStagiairesDepuisSelection();
+  } else {
+    buildStagiairesLibres();
+  }
+}
+
+function buildNoteGrid(idx,note){
+  const b=currentBareme;
+  // Borne min : 0 si <=12, sinon 6
+  const min=(b<=12)?0:6;
+  const notes=[];for(let v=min;v<=b;v++)notes.push(v);
+  const colClass=notes.length<=13?'cols-6':'cols-6';
+  const getNoteClass=(v)=>{
+    const pct=v/b;
+    if(pct>=0.875)return'note-col-green';
+    if(pct>=0.625)return'note-col-orange';
+    return'note-col-red';
+  };
+  const btns=notes.map(v=>{
+    const cls=getNoteClass(v);
+    const sel=v===note?' selected-note':'';
+    return`<div class="note-btn ${cls}${sel}" onclick="updNote(${idx},${v})">${v}</div>`;
+  }).join('');
+  return`<div class="note-grid ${colClass}">${btns}</div>`;
+}
+
+function renderStagiaires(){
+  const container=document.getElementById('stagiaires-list');if(!container)return;
+  const expanded=new Set();
+  container.querySelectorAll('.stagiaire-card.expanded').forEach(c=>expanded.add(+c.dataset.idx));
+  container.innerHTML='';
+  stagiairesData.forEach((s,i)=>{
+    const isDetache=currentUser&&currentUser.role==='detache';
+    const nc=getNoteColor(s.note);
+    const fb=s.fauteSec?'<span class="faute-badge">⚠️ F.Sécu</span>':'';
+    const foHtml=['Chute','Éjection','Autre (préciser)'].map(t=>`<div class="faute-opt${s.fauteType===t?' selected':''}" onclick="setFauteType(${i},'${t}')">${t==='Chute'?'🛞':t==='Éjection'?'🚨':'📝'} ${t}</div>`).join('');
+
+    // Bloc note : chiffré pour instructeur/admin/chef/dir, couleur seule pour détaché
+    let noteHtml;
+    if(isDetache){
+      // 3 niveaux : rouge (insuffisant) = note 4/16, orange (passable) = note 10/16, vert (acquis) = note 15/16
+      const COULEURS=[
+        {label:'🔴 Insuffisant', val:4,  cls:'rouge', bg:'var(--rouge)',     active:s.note<=6},
+        {label:'🟠 En cours',    val:10, cls:'orange',bg:'#d97706',          active:s.note>6&&s.note<14},
+        {label:'🟢 Acquis',      val:15, cls:'vert',  bg:'var(--success)',   active:s.note>=14},
+      ];
+      noteHtml=`<div class="note-container">
+        <label>Niveau</label>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:8px;">
+          ${COULEURS.map(c=>`<div onclick="updNoteCouleur(${i},${c.val})" style="padding:12px 6px;text-align:center;border-radius:var(--radius);background:${c.active?c.bg:'var(--surface2)'};border:2px solid ${c.active?c.bg:'var(--border)'};color:${c.active?'#fff':'var(--text-muted)'};font-size:13px;font-weight:700;cursor:pointer;transition:all 0.15s;">${c.label}</div>`).join('')}
+        </div>
+      </div>`;
+    } else {
+      const noteGrid=buildNoteGrid(i,s.note);
+      noteHtml=`<div class="note-container">
+        <label>Note sur ${currentBareme}</label>
+        <div class="note-display-selected" id="nd-${i}" style="color:${nc};background:${nc}18">${s.note} / ${currentBareme}</div>
+        ${noteGrid}
+      </div>`;
+    }
+
+    // Affichage résumé dans le header : couleur pour détaché, chiffre pour les autres
+    const headerNote=isDetache
+      ? `<span style="font-size:20px;" id="nh-${i}">${s.note<=6?'🔴':s.note>=14?'🟢':'🟠'}</span>`
+      : `<span style="font-size:20px;font-weight:700;color:${nc};font-family:'Spectral',serif;" id="nh-${i}">${s.note}/${currentBareme}</span>`;
+
+    const stagLabel=s.nom?`N° ${esc(s.nom)}`:`— ${i+1} —`;
+    container.innerHTML+=`<div class="stagiaire-card${expanded.has(i)?' expanded':''}${s.fauteSec?' has-faute':s.nom?' has-data':''}" id="sc-${i}" data-idx="${i}">
+      <div class="stagiaire-header" onclick="toggleStag(${i})">
+        <div><div class="stagiaire-num" id="snd-${i}">${stagLabel}${fb}</div></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          ${headerNote}
+          <span class="expand-icon">⌄</span>
+        </div>
+      </div>
+      <div class="stagiaire-body">
+        <label>Numéro / Identifiant</label>
+        <input type="text" value="${esc(s.nom)}" placeholder="N° du stagiaire" oninput="updStag(${i},'nom',this.value)">
+        ${noteHtml}
+        <div class="faute-toggle" onclick="toggleFaute(${i})">
+          <div class="faute-checkbox${s.fauteSec?' checked':''}" id="fcb-${i}"></div>
+          <span class="faute-lbl${s.fauteSec?' active':''}">⚠️ Faute de sécurité</span>
+        </div>
+        <div class="faute-detail${s.fauteSec?' open':''}" id="fd-${i}">
+          <label style="color:var(--danger);margin-bottom:10px;">Type de faute</label>
+          <div class="faute-options" id="fo-${i}">${foHtml}</div>
+          <div class="faute-autre${s.fauteType==='Autre (préciser)'?' open':''}" id="fa-${i}">
+            <label>Préciser</label>
+            <input type="text" value="${esc(s.fauteAutre)}" placeholder="Décrivez..." oninput="updStag(${i},'fauteAutre',this.value)" style="margin-bottom:0;">
+          </div>
+        </div>
+        <label>Appréciation</label>
+        <div class="appreciation-section">
+          <div class="appreciation-slots" id="apslots-${i}">${buildAppreciationSlots(i,s.appreciationCriteres||[])}</div>
+          <div id="apslots-add-${i}">${buildAddBtn(i,s.appreciationCriteres||[])}</div>
+          <div class="appreciation-libre">
+            <label style="font-size:10px;margin-bottom:4px;">Note libre (optionnel)</label>
+            <textarea placeholder="Observations complémentaires..." oninput="updStag(${i},'appreciation',this.value)" style="min-height:55px;font-size:13px;">${esc(s.appreciation)}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+}
+function toggleStag(i){document.getElementById(`sc-${i}`).classList.toggle('expanded');}
+function updStag(i,k,v){
+  stagiairesData[i][k]=v;
+  if(k==='nom'){
+    const e=document.getElementById(`snd-${i}`);
+    if(e){
+      const fb=stagiairesData[i].fauteSec?'<span class="faute-badge">⚠️ F.Sécu</span>':'';
+      e.innerHTML=(v?`N° ${esc(v)}`:`— ${i+1} —`)+fb;
+    }
+  }
+  const c=document.getElementById(`sc-${i}`);
+  if(c){c.classList.toggle('has-faute',!!stagiairesData[i].fauteSec);c.classList.toggle('has-data',!stagiairesData[i].fauteSec&&!!stagiairesData[i].nom);}
+}
+function updNoteCouleur(i,v){
+  // Pour le détaché : met à jour la note interne et rafraîchit le header + les boutons
+  updNote(i,v);
+  // Rafraîchir les 3 boutons couleur sans re-render complet
+  const card=document.getElementById(`sc-${i}`);
+  if(!card)return;
+  const COULEURS=[
+    {label:'🔴 Insuffisant',val:4, bg:'var(--rouge)',  active:v<=6},
+    {label:'🟠 En cours',   val:10,bg:'#d97706',       active:v>6&&v<14},
+    {label:'🟢 Acquis',     val:15,bg:'var(--success)', active:v>=14},
+  ];
+  const btns=card.querySelectorAll('.note-container [onclick^="updNoteCouleur"]');
+  btns.forEach((btn,j)=>{
+    const c=COULEURS[j];
+    btn.style.background=c.active?c.bg:'var(--surface2)';
+    btn.style.borderColor=c.active?c.bg:'var(--border)';
+    btn.style.color=c.active?'#fff':'var(--text-muted)';
+  });
+  // Header emoji
+  const h=document.getElementById(`nh-${i}`);
+  if(h)h.textContent=v<=6?'🔴':v>=14?'🟢':'🟠';
+}
+function updNote(i,v){
+  v=parseInt(v);stagiairesData[i].note=v;
+  const col=getNoteColor(v);
+  const d=document.getElementById(`nd-${i}`);
+  if(d){d.textContent=`${v} / ${currentBareme}`;d.style.color=col;d.style.background=col+'18';}
+  const nh=document.getElementById(`nh-${i}`);
+  if(nh){
+    if(currentUser&&currentUser.role==='detache'){
+      nh.textContent=v<=6?'🔴':v>=14?'🟢':'🟠';
+    } else {
+      nh.textContent=`${v}/${currentBareme}`;nh.style.color=col;
+    }
+  }
+  // Refresh note grid (instructeur seulement)
+  if(!currentUser||currentUser.role!=='detache'){
+    const card=document.getElementById(`sc-${i}`);
+    if(card){
+      const noteContainer=card.querySelector('.note-container');
+      if(noteContainer){
+        const existingGrid=noteContainer.querySelector('.note-grid');
+        if(existingGrid)existingGrid.outerHTML=buildNoteGrid(i,v);
+      }
+    }
+  }
+}
+function toggleFaute(i){
+  stagiairesData[i].fauteSec=!stagiairesData[i].fauteSec;
+  if(!stagiairesData[i].fauteSec){stagiairesData[i].fauteType='';stagiairesData[i].fauteAutre='';}
+  const cb=document.getElementById(`fcb-${i}`);const fd=document.getElementById(`fd-${i}`);
+  if(cb)cb.classList.toggle('checked',stagiairesData[i].fauteSec);
+  if(cb?.nextElementSibling)cb.nextElementSibling.classList.toggle('active',stagiairesData[i].fauteSec);
+  if(fd)fd.classList.toggle('open',stagiairesData[i].fauteSec);
+  const c=document.getElementById(`sc-${i}`);if(c)c.classList.toggle('has-faute',stagiairesData[i].fauteSec);
+  const num=c?.querySelector('.stagiaire-num');
+  if(num){const old=num.querySelector('.faute-badge');if(old)old.remove();if(stagiairesData[i].fauteSec)num.insertAdjacentHTML('beforeend','<span class="faute-badge">⚠️ F.Sécu</span>');}
+}
+function setFauteType(i,type){
+  stagiairesData[i].fauteType=type;
+  document.getElementById(`fo-${i}`)?.querySelectorAll('.faute-opt').forEach(el=>el.classList.toggle('selected',el.textContent.includes(type.replace(' (préciser)',''))) );
+  const fa=document.getElementById(`fa-${i}`);if(fa)fa.classList.toggle('open',type==='Autre (préciser)');
+}
+
+// ══════════════════════════════════════════
+// CRITÈRES D'APPRÉCIATION
+// ══════════════════════════════════════════
+function buildCritereOptions(selectedVal){
+  let opts=`<option value="">— Choisir un critère —</option>`;
+  if(criteres.length===0){opts+=`<option disabled>Aucun critère — cliquez sur 💬 Critères pour en ajouter</option>`;}
+  else{criteres.forEach(c=>{opts+=`<option value="${esc(c.texte)}"${c.texte===selectedVal?' selected':''}>${esc(c.texte)}</option>`;});}
+  opts+=`<option value="__new__">✚ Ajouter un nouveau critère...</option>`;
+  return opts;
+}
+
+function refreshCritereSelect(sel){
+  if(!sel)return;
+  const cur=sel.value;
+  sel.innerHTML=buildCritereOptions(cur);
+  sel.value=cur||'';
+}
+
+function buildAppreciationSlots(idx,vals){
+  if(!vals||vals.length===0)return'';
+  return vals.map((v,si)=>`
+    <div class="appreciation-slot" id="apslot-${idx}-${si}">
+      <select class="critere-select${v?' has-value':''}" onchange="onCritereChange(${idx},${si},this)">
+        ${buildCritereOptions(v)}
+      </select>
+      <button class="critere-del-btn" onclick="removeCritereSlot(${idx},${si})" title="Retirer">✕</button>
+    </div>`).join('');
+}
+
+function buildAddBtn(idx,vals){
+  // Toujours montrer si 0 slots, sinon seulement si le dernier slot a une valeur
+  const lastFilled=vals&&vals.length>0&&vals[vals.length-1];
+  if(vals&&vals.length>0&&!lastFilled)return''; // dernier slot vide → pas de bouton
+  return`<button class="appreciation-add-btn" onclick="addCritereSlot(${idx})">
+    <span style="font-size:16px;">＋</span> Ajouter un critère d'appréciation
+  </button>`;
+}
+
+function addCritereSlot(idx){
+  if(!stagiairesData[idx].appreciationCriteres)stagiairesData[idx].appreciationCriteres=[];
+  stagiairesData[idx].appreciationCriteres.push('');
+  refreshAppreciationUI(idx);
+}
+
+function removeCritereSlot(idx,si){
+  if(!stagiairesData[idx].appreciationCriteres)return;
+  stagiairesData[idx].appreciationCriteres.splice(si,1);
+  refreshAppreciationUI(idx);
+}
+
+function refreshAppreciationUI(idx){
+  const vals=stagiairesData[idx].appreciationCriteres||[];
+  const slotsEl=document.getElementById(`apslots-${idx}`);
+  const addEl=document.getElementById(`apslots-add-${idx}`);
+  if(slotsEl)slotsEl.innerHTML=buildAppreciationSlots(idx,vals);
+  if(addEl)addEl.innerHTML=buildAddBtn(idx,vals);
+}
+
+function onCritereChange(idx,si,sel){
+  const val=sel.value;
+  if(val==='__new__'){
+    sel.value=stagiairesData[idx].appreciationCriteres?.[si]||'';
+    sel.classList.toggle('has-value',!!sel.value);
+    ouvrirGestionCriteres();
+    return;
+  }
+  if(!stagiairesData[idx].appreciationCriteres)stagiairesData[idx].appreciationCriteres=[];
+  stagiairesData[idx].appreciationCriteres[si]=val;
+  sel.classList.toggle('has-value',!!val);
+  // Mettre à jour le bouton "ajouter" en bas
+  const addEl=document.getElementById(`apslots-add-${idx}`);
+  if(addEl)addEl.innerHTML=buildAddBtn(idx,stagiairesData[idx].appreciationCriteres);
+}
+
+// ── GESTION CRITÈRES (modal) ──
+function ouvrirGestionCriteres(){
+  renderCriteresModal();
+  openModal('modal-criteres');
+}
+
+function renderCriteresModal(){
+  const el=document.getElementById('criteres-list-modal');
+  if(!el)return;
+  if(!criteres.length){
+    el.innerHTML=`<div style="text-align:center;color:var(--text-muted);padding:20px;font-size:13px;">Aucun critère. Ajoutez le premier !</div>`;
+    return;
+  }
+  el.innerHTML=criteres.map(c=>`
+    <div class="critere-list-item">
+      <div class="critere-texte">${esc(c.texte)}</div>
+      <div class="critere-auteur">par ${esc(c.auteur||'?')}</div>
+      ${isSuperAdmin()||c.auteurId===currentUser?.uid?`<button class="critere-del" onclick="supprimerCritere('${c.id}')">🗑</button>`:''}
+    </div>`).join('');
+}
+
+function ajouterCritere(){
+  const inp=document.getElementById('nouveau-critere-input');
+  const err=document.getElementById('critere-add-error');
+  const texte=(inp.value||'').trim();
+  err.textContent='';
+  if(!texte){err.textContent='⚠️ Saisissez un critère';return;}
+  if(criteres.find(c=>c.texte.toLowerCase()===texte.toLowerCase())){err.textContent='⚠️ Ce critère existe déjà';return;}
+  const c={
+    id:'crit_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,5),
+    texte,
+    auteur:fullName(currentUser)||currentUser?.prenom||'Instructeur',
+    auteurId:currentUser?.uid||'',
+    createdAt:new Date().toISOString()
+  };
+  pushCritere(c);
+  inp.value='';
+  renderCriteresModal();
+  // Refresh tous les selects ouverts
+  document.querySelectorAll('.critere-select').forEach(sel=>refreshCritereSelect(sel));
+  showToast('✅ Critère ajouté !');
+}
+
+function supprimerCritere(id){
+  if(!confirm('Supprimer ce critère ? Il sera retiré des menus de tous les instructeurs.'))return;
+  deleteCritere(id);
+  renderCriteresModal();
+  document.querySelectorAll('.critere-select').forEach(sel=>refreshCritereSelect(sel));
+  showToast('🗑 Critère supprimé');
+}
+function selectMeteo(el){document.querySelectorAll('.meteo-btn').forEach(b=>b.classList.remove('selected'));el.classList.add('selected');currentMeteo=el.dataset.meteo;}
+
+// ══════════════════════════════════════════
+// MODE ÉDITION
+// ══════════════════════════════════════════
+function modifierSession(id){
+  const s=sessions.find(x=>x.id==id);if(!s)return;
+  if(!canEdit(s)){showToast('⚠️ Permission refusée');return;}
+  editSessionId=id;
+  document.getElementById('session-date').value=s.date||'';
+  document.getElementById('session-route').value=s.route||'';
+  renderStageSelect();
+  setTimeout(()=>{
+    document.getElementById('session-stage').value=s.stageId||'';
+    onStageChange();
+    // Ré-appliquer les stagiaires sauvegardés
+    setTimeout(()=>{
+      stagiairesData=JSON.parse(JSON.stringify(s.stagiaires));
+      // Cocher les bons stagiaires si liste
+      const stage=getStageById(s.stageId||'');
+      if(stage&&stage.stagiaires&&stage.stagiaires.length>0){
+        document.querySelectorAll('.stag-check-item').forEach(el=>{
+          const num=el.dataset.num;
+          const found=s.stagiaires.find(st=>st.nom===String(num));
+          if(found){el.classList.add('checked');const box=el.querySelector('.stag-check-box');if(box)box.textContent='✓';}
+        });
+        buildStagiairesDepuisSelection();
+      } else {
+        renderStagiaires();
+      }
+    },100);
+  },50);
+  document.getElementById('session-nb-stagiaires').value=s.stagiaires.length;
+  currentMeteo=s.meteo||'';
+  document.querySelectorAll('.meteo-btn').forEach(b=>b.classList.toggle('selected',b.dataset.meteo===s.meteo));
+  // Restore bareme
+  currentBareme=s.bareme||16;
+  document.querySelectorAll('.bareme-btn').forEach(b=>{b.classList.toggle('active',parseInt(b.dataset.bareme)===currentBareme);});
+  stagiairesData=JSON.parse(JSON.stringify(s.stagiaires));
+  renderStagiaires();
+  document.getElementById('edit-banner').style.display='flex';
+  document.getElementById('edit-session-info').textContent=`Session du ${formatDate(s.date)} — ${s.stage||s.route}`;
+  document.getElementById('btn-sauvegarder').textContent='💾 Enregistrer les modifications';
+  closeModal('modal-detail');
+  showPage('nouvelle',document.querySelector('.nav-tab'));
+  showToast('✏️ Session chargée');
+}
+function annulerEdition(){
+  editSessionId=null;
+  document.getElementById('edit-banner').style.display='none';
+  document.getElementById('btn-sauvegarder').textContent='💾 Sauvegarder & Synchroniser';
+}
+
+// ══════════════════════════════════════════
+// RAPPORT & SAUVEGARDE
+// ══════════════════════════════════════════
+function genererRapport(){
+  const date=document.getElementById('session-date').value;
+  const route=document.getElementById('session-route').value||'Non précisée';
+  const stageId=document.getElementById('session-stage').value||'';
+  const stageNom=getStageById(stageId)?.nom||stageId||'Non précisé';
+  if(!currentMeteo){showToast('⚠️ Sélectionnez la météo');return;}
+  const instr=fullName(currentUser)||'Instructeur';
+  const bar=currentBareme;
+  let r=`═══════════════════════════════\nRAPPORT DE SESSION — NéoNote / CNFCF\n═══════════════════════════════\nInstructeur : ${instr}\nStage       : ${stageNom}\nDate        : ${formatDate(date)}\nRoute       : ${route}\nMétéo       : ${currentMeteo}\nBarème      : /${bar}\n═══════════════════════════════\n`;
+  const fauteux=[];
+  stagiairesData.forEach((s,i)=>{
+    const lbl=s.nom||`Stagiaire ${i+1}`;
+    r+=`\n───────────────────────────────\n${lbl} — ${s.note}/${bar}\n`;
+    if(s.fauteSec){let ft='⚠️ Faute';if(s.fauteType)ft+=` — ${s.fauteType==='Autre (préciser)'?s.fauteAutre||'Autre':s.fauteType}`;r+=ft+'\n';fauteux.push(lbl);}
+    const crit=(s.appreciationCriteres||[]).filter(Boolean);
+    if(crit.length)r+=`Critères : ${crit.map((c,j)=>`${j+1}. ${c}`).join(' | ')}\n`;
+    if(s.appreciation)r+=`Appréciation : ${s.appreciation}\n`;
+  });
+  const avg=(stagiairesData.reduce((a,s)=>a+s.note,0)/stagiairesData.length).toFixed(1);
+  r+=`\n═══════════════════════════════\nMOYENNE : ${avg}/${bar}\n`;
+  if(fauteux.length)r+=`⚠️ ${fauteux.length} faute(s) : ${fauteux.join(', ')}\n`;
+  r+=`\nGénéré le ${new Date().toLocaleString('fr-FR')}`;
+  rapportTexte=r;
+  document.getElementById('rapport-contenu').innerHTML=`<div class="rapport-box">${r}</div>`;
+  openModal('modal-rapport');
+}
+
+function sauvegarderSession(){
+  const date=document.getElementById('session-date').value;
+  if(!date){showToast('⚠️ Indiquez une date');return;}
+  if(!currentUser){showToast('⚠️ Non connecté');return;}
+  const stageId=document.getElementById('session-stage').value||'';
+  const stageObj=getStageById(stageId);
+  const session={
+    id:editSessionId||Date.now().toString(),
+    date,
+    stageId,
+    stage:stageObj?.nom||stageId||'',
+    route:document.getElementById('session-route').value||'Route ?',
+    meteo:currentMeteo,
+    bareme:currentBareme,
+    instructeur:fullName(currentUser),
+    instructeurId:currentUser.uid,
+    instructeurRole:currentUser.role,
+    stagiaires:JSON.parse(JSON.stringify(stagiairesData)),
+    rapport:rapportTexte,
+    createdAt:editSessionId?(sessions.find(s=>s.id===editSessionId)?.createdAt||new Date().toISOString()):new Date().toISOString(),
+    updatedAt:new Date().toISOString()
+  };
+  if(editSessionId){const idx=sessions.findIndex(s=>s.id===editSessionId);if(idx>=0)sessions[idx]=session;else sessions.unshift(session);annulerEdition();}
+  else sessions.unshift(session);
+  localStorage.setItem('cnfcf_sessions',JSON.stringify(sessions));
+  if(!pushSession(session))showToast('✅ Sauvegardé localement');
+  renderHistorique();
+}
+function sauvegarderEtFermer(){sauvegarderSession();closeModal('modal-rapport');}
+function reinitialiser(){
+  if(!confirm('Réinitialiser ?'))return;
+  annulerEdition();
+  document.getElementById('session-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('session-route').value='';
+  document.getElementById('session-stage').value='';
+  document.querySelectorAll('.meteo-btn').forEach(b=>b.classList.remove('selected'));
+  currentMeteo='';rapportTexte='';stagiairesData=[];
+  // Reset zone sélection
+  const zone=document.getElementById('stagiaires-selection-zone');
+  if(zone)zone.innerHTML=`<label>Nombre de Stagiaires</label><select id="session-nb-stagiaires" onchange="buildStagiairesLibres()" style="margin-bottom:0;">${[...Array(30)].map((_,i)=>`<option value="${i+1}"${i===5?' selected':''}>${i+1}</option>`).join('')}</select>`;
+  buildStagiairesLibres();showToast('↺ Réinitialisé');
+}
+
+// ══════════════════════════════════════════
+// PARTAGE
+// ══════════════════════════════════════════
+function buildTexte(stagsArr,instr,date,route,meteo,stage,bar){
+  bar=bar||currentBareme||16;
+  let t=`NéoNote / CNFCF — ÉVALUATION\n`;
+  if(stage)t+=`Stage : ${stage}\n`;
+  t+=`Instructeur : ${instr}\nDate : ${formatDate(date)} | Route : ${route} | Météo : ${meteo||'N/A'} | Barème : /${bar}\n`;
+  stagsArr.forEach((s,i)=>{
+    const lbl=s.nom||`Stagiaire ${i+1}`;
+    t+=`───────────────────────\n${lbl} : ${s.note}/${bar}\n`;
+    if(s.fauteSec){let ft='⚠️ Faute';if(s.fauteType)ft+=` — ${s.fauteType==='Autre (préciser)'?s.fauteAutre||'Autre':s.fauteType}`;t+=ft+'\n';}
+    const crit=(s.appreciationCriteres||[]).filter(Boolean);
+    if(crit.length)t+=`Critères : ${crit.join(' | ')}\n`;
+    if(s.appreciation)t+=`Appréciation : ${s.appreciation}\n`;
+  });
+  const avg=(stagsArr.reduce((a,s)=>a+s.note,0)/stagsArr.length).toFixed(1);
+  t+=`───────────────────────\nMoyenne : ${avg}/${bar}\nNéoNote / CNFCF — ${new Date().toLocaleString('fr-FR')}`;
+  return t;
+}
+function ouvrirPartage(source,sessionId){
+  if(source==='session'){
+    const date=document.getElementById('session-date').value;
+    const route=document.getElementById('session-route').value||'Route ?';
+    const stage=document.getElementById('session-stage').value||'';
+    if(!currentMeteo){showToast('⚠️ Météo manquante');return;}
+    shareTexte=buildTexte(stagiairesData,fullName(currentUser)||'Instructeur',date,route,currentMeteo,stage,currentBareme);
+    shareTitre=`NéoNote — Synthèse ${formatDate(date)}`;
+    document.getElementById('partage-titre').textContent='📤 Partager la Synthèse';
+  }else if(source==='rapport'){
+    if(!rapportTexte){showToast('⚠️ Générez d\'abord');return;}
+    shareTexte=rapportTexte;shareTitre='NéoNote — Rapport';
+    document.getElementById('partage-titre').textContent='📤 Partager le Rapport';
+  }else if(source==='historique'){
+    const s=sessions.find(x=>x.id==sessionId);if(!s)return;
+    shareTexte=buildTexte(s.stagiaires,s.instructeur,s.date,s.route,s.meteo,s.stage,s.bareme||16);
+    shareTitre=`NéoNote — ${s.instructeur} — ${formatDate(s.date)}`;
+    document.getElementById('partage-titre').textContent='📤 Partager la Session';
+  }
+  openModal('modal-partage');
+}
+function partagerVia(canal){
+  if(!shareTexte)return;
+  if(canal==='mail')window.location.href=`mailto:?subject=${encodeURIComponent(shareTitre)}&body=${encodeURIComponent(shareTexte)}`;
+  else if(canal==='whatsapp')window.open(`https://wa.me/?text=${encodeURIComponent(shareTitre+'\n\n'+shareTexte)}`,'_blank');
+  else if(canal==='tchap')navigator.share?navigator.share({title:shareTitre,text:shareTexte}).catch(()=>{}):navigator.clipboard.writeText(shareTexte).then(()=>showToast('📋 Copié !'));
+  else if(canal==='copy')navigator.clipboard.writeText(shareTexte).then(()=>showToast('📋 Copié !'));
+  else if(canal==='pdf'){genererPDF();return;}
+  closeModal('modal-partage');
+}
+
+function genererPDF(){
+  const titre=shareTitre||'NéoNote';
+  const lignes=shareTexte.split('\n');
+  const htmlContent=lignes.map(l=>{
+    if(!l.trim())return '<div style="height:6px"></div>';
+    if(l.match(/^[═]/))return `<div style="color:#bbc4d8;font-size:10px;letter-spacing:1px;">${l}</div>`;
+    if(l.match(/^[─]/))return `<div style="color:#d8dfe8;font-size:10px;">${l}</div>`;
+    if(l.includes('RAPPORT')||l.includes('NéoNote')||l.includes('SUIVI')||l.includes('ÉVALUATION'))return `<div style="font-weight:bold;font-size:13px;background:#e8eeff;padding:3px 6px;border-left:3px solid #003189;margin:4px 0;">${l}</div>`;
+    if(l.includes('⚠️'))return `<div style="color:#c1121f;font-weight:bold;">${l}</div>`;
+    if(l.includes('MOYENNE')||l.includes('Moyenne'))return `<div style="font-weight:bold;font-size:12px;color:#1a7a4a;">${l}</div>`;
+    return `<div>${l}</div>`;
+  }).join('');
+
+  const win=window.open('','_blank');
+  if(!win){showToast('⚠️ Autorisez les popups pour générer le PDF');return;}
+  win.document.write(`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
+<title>${titre}</title>
+<style>
+  @page{margin:16mm 14mm;}
+  @media print{body{-webkit-print-color-adjust:exact;print-color-adjust:exact;}}
+  body{font-family:'Courier New',monospace;font-size:11px;color:#1a1f2e;background:#fff;line-height:1.55;max-width:700px;margin:0 auto;}
+  .entete{text-align:center;margin-bottom:16px;padding-bottom:10px;border-bottom:3px solid #003189;display:flex;flex-direction:column;align-items:center;}
+  .entete-tricolor{height:4px;width:100%;background:linear-gradient(to right,#003189 33.3%,#fff 33.3%,#fff 66.6%,#c1121f 66.6%);margin-bottom:10px;}
+  .entete h1{font-size:20px;letter-spacing:3px;color:#003189;margin:0 0 3px;font-family:Georgia,serif;}
+  .entete p{font-size:9px;color:#5a6480;margin:0;}
+  .pied{text-align:center;font-size:9px;color:#8892a8;margin-top:18px;padding-top:8px;border-top:1px solid #d8dfe8;}
+</style>
+</head><body onload="setTimeout(()=>{print();},300)">
+<div class="entete"><div class="entete-tricolor"></div><h1>NéoNote — CNFCF</h1><p>Évaluation — ${new Date().toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'})}</p></div>
+${htmlContent}
+<div class="pied">Document généré par NéoNote / CNFCF — ${new Date().toLocaleString('fr-FR')}</div>
+</body></html>`);
+  win.document.close();
+}
+
+// ══════════════════════════════════════════
+// HISTORIQUE
+// ══════════════════════════════════════════
+function setFiltre(el,f){filtreHistorique=f;document.querySelectorAll('#filtre-bar .filtre-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderHistorique();}
+function renderHistorique(){
+  const container=document.getElementById('sessions-list');if(!container)return;
+  const stats=document.getElementById('global-stats');
+  const bar=document.getElementById('filtre-bar');
+
+  // Visibilité : admin et chef de centre voient tout, les autres ne voient que leurs sessions
+  const voitTout=currentUser&&(currentUser.role==='admin'||currentUser.role==='chef');
+  const sessionVisibles=voitTout?sessions:sessions.filter(s=>s.instructeurId===currentUser?.uid);
+
+  if(voitTout){
+    // Filtres enrichis pour admin/chef
+    const instructeurs=[...new Set(sessionVisibles.map(s=>s.instructeur).filter(Boolean))].sort();
+    const stagesUsed=[...new Set(sessionVisibles.map(s=>s.stage).filter(Boolean))].sort();
+    bar.innerHTML=`<div class="filtre-chip${filtreHistorique==='tous'?' active':''}" onclick="setFiltre(this,'tous')">Tous</div>`
+      +`<div class="filtre-chip${filtreHistorique==='moi'?' active':''}" onclick="setFiltre(this,'moi')">Mes sessions</div>`
+      +stagesUsed.map(st=>`<div class="filtre-chip${filtreHistorique==='stage:'+st?' active':''}" onclick="setFiltre(this,'stage:${st}')">📚 ${st}</div>`).join('')
+      +instructeurs.map(instr=>`<div class="filtre-chip${filtreHistorique===instr?' active':''}" onclick="setFiltre(this,'${esc(instr)}')">👤 ${instr}</div>`).join('');
+  } else {
+    // Instructeur/détaché : filtre par stage uniquement sur leurs sessions
+    const stagesUsed=[...new Set(sessionVisibles.map(s=>s.stage).filter(Boolean))].sort();
+    bar.innerHTML=`<div class="filtre-chip${filtreHistorique==='tous'?' active':''}" onclick="setFiltre(this,'tous')">Toutes mes sessions</div>`
+      +stagesUsed.map(st=>`<div class="filtre-chip${filtreHistorique==='stage:'+st?' active':''}" onclick="setFiltre(this,'stage:${st}')">📚 ${st}</div>`).join('');
+  }
+
+  let filtered=sessionVisibles;
+  if(filtreHistorique==='moi')filtered=sessionVisibles.filter(s=>s.instructeurId===currentUser?.uid);
+  else if(filtreHistorique.startsWith('stage:'))filtered=sessionVisibles.filter(s=>s.stage===filtreHistorique.slice(6));
+  else if(filtreHistorique!=='tous'&&voitTout)filtered=sessionVisibles.filter(s=>s.instructeur===filtreHistorique);
+
+  if(!filtered.length){
+    container.innerHTML=`<div class="empty-state"><div class="icon">📂</div><p>${voitTout?'Aucune session.':'Vous n\'avez pas encore de session enregistrée.'}</p></div>`;
+    stats.innerHTML='';return;
+  }
+  const allNotes=filtered.flatMap(s=>s.stagiaires.map(st=>st.note));
+  const moy=(allNotes.reduce((a,b)=>a+b,0)/allNotes.length).toFixed(1);
+  const totalFautes=filtered.reduce((a,s)=>a+s.stagiaires.filter(st=>st.fauteSec).length,0);
+  stats.innerHTML=`<div class="stat-box"><div class="stat-value">${filtered.length}</div><div class="stat-label">Sessions</div></div><div class="stat-box"><div class="stat-value">${moy}</div><div class="stat-label">Moy.</div></div><div class="stat-box"><div class="stat-value" style="color:var(--danger)">${totalFautes}</div><div class="stat-label">⚠️ Fautes</div></div>`;
+  container.innerHTML=filtered.map(s=>{
+    const avg=(s.stagiaires.reduce((a,st)=>a+st.note,0)/s.stagiaires.length).toFixed(1);
+    const nf=s.stagiaires.filter(st=>st.fauteSec).length;
+    const canEd=canEdit(s);const canDel=canDelete(s);
+    const edited=s.updatedAt&&s.updatedAt!==s.createdAt;
+    return `<div class="session-item">
+      <div class="session-item-header" onclick="voirDetail('${s.id}')">
+        <div class="session-date-lbl">${formatDate(s.date)}</div>
+        <div style="display:flex;gap:4px;align-items:center;">${edited?'<span class="edit-badge">✏️</span>':''}<span class="session-route-lbl">${s.route}</span></div>
+      </div>
+      <div class="session-meta" onclick="voirDetail('${s.id}')">
+        ${s.stage?`<span class="stage-tag">📚 ${s.stage}</span>`:''}
+        ${voitTout?`<span class="instr-chip">👤 ${s.instructeur}</span>`:''}
+        <span>${getMeteoEmoji(s.meteo)} ${s.meteo||'N/A'}</span>
+        <span>🏍 ${s.stagiaires.length} stag.</span>
+        <span>★ ${avg}/${s.bareme||16}</span>
+        ${nf?`<span style="color:var(--danger)">⚠️ ${nf}</span>`:''}
+      </div>
+      <div class="session-actions">
+        <button class="btn btn-secondary btn-sm" onclick="voirDetail('${s.id}')">👁 Voir</button>
+        <button class="btn btn-secondary btn-sm" onclick="ouvrirPartage('historique','${s.id}')">📤</button>
+        ${canEd?`<button class="btn btn-warning btn-sm" onclick="modifierSession('${s.id}')">✏️</button>`:''}
+        ${canDel?`<button class="btn btn-danger btn-sm" onclick="supprimerSession('${s.id}')">🗑</button>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+function voirDetail(id){
+  const s=sessions.find(x=>x.id==id);if(!s)return;
+  const avg=(s.stagiaires.reduce((a,st)=>a+st.note,0)/s.stagiaires.length).toFixed(1);
+  let html=`<div style="font-family:'Spectral','Georgia',serif;font-size:20px;font-weight:700;color:var(--accent);margin-bottom:6px;">${formatDate(s.date)}</div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;">${s.stage?`<span class="stage-tag">📚 ${s.stage}</span>`:''}<span class="instr-chip">👤 ${s.instructeur}</span></div>
+    <div style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">${s.route} — ${getMeteoEmoji(s.meteo)} ${s.meteo}</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;">STAGIAIRES — Moy. ${avg}/${s.bareme||16}</div>`;
+  s.stagiaires.forEach((st,i)=>{
+    const col=getNoteColor(st.note,s.bareme||16);
+    let ft='';if(st.fauteSec){ft='⚠️ Faute';if(st.fauteType)ft+=` — ${st.fauteType==='Autre (préciser)'?st.fauteAutre||'Autre':st.fauteType}`;}
+    const crit=(st.appreciationCriteres||[]).filter(Boolean);
+    const critHtml=crit.length?`<div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px;">${crit.map(c=>`<span style="background:var(--accent-light);border:1px solid rgba(0,49,137,0.2);color:var(--accent);border-radius:3px;padding:2px 7px;font-size:11px;font-weight:600;">${esc(c)}</span>`).join('')}</div>`:'';
+    html+=`<div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:8px;border-left:3px solid ${st.fauteSec?'var(--danger)':col}">
+      <div style="display:flex;justify-content:space-between;align-items:center;"><span style="font-weight:600;">${st.nom||`Stagiaire ${i+1}`}</span><span style="font-family:monospace;font-size:18px;font-weight:700;color:${col}">${st.note}/${s.bareme||16}</span></div>
+      ${ft?`<div style="font-size:12px;color:var(--danger);margin-top:4px;font-weight:600;">${ft}</div>`:''}
+      ${critHtml}
+      ${st.appreciation?`<div style="font-size:12px;color:var(--text-muted);margin-top:4px;font-style:italic;">${st.appreciation}</div>`:''}
+    </div>`;
+  });
+  html+=`<button class="btn btn-secondary" style="margin-top:8px;" onclick="ouvrirPartage('historique','${id}');closeModal('modal-detail')">📤 Partager</button>`;
+  if(canEdit(s))html+=`<button class="btn btn-warning" onclick="modifierSession('${id}')">✏️ Modifier</button>`;
+  if(canDelete(s))html+=`<button class="btn btn-danger" onclick="supprimerSession('${id}')">🗑 Supprimer</button>`;
+  document.getElementById('detail-contenu').innerHTML=html;
+  openModal('modal-detail');
+}
+function supprimerSession(id){
+  const s=sessions.find(x=>x.id==id);
+  if(!s||!canDelete(s)){showToast('⚠️ Permission refusée');return;}
+  if(!confirm('Supprimer ?'))return;
+  sessions=sessions.filter(s=>s.id!=id);
+  localStorage.setItem('cnfcf_sessions',JSON.stringify(sessions));
+  deleteSessionFb(id);closeModal('modal-detail');renderHistorique();showToast('🗑 Supprimé');
+}
+
+// ══════════════════════════════════════════
+// SUIVI STAGIAIRES
+// ══════════════════════════════════════════
+function setFiltreStagiaires(el,f){filtreStagiairesStage=f;document.querySelectorAll('#stag-filtre-bar .filtre-chip').forEach(c=>c.classList.remove('active'));el.classList.add('active');renderStagiairesTab();}
+function renderStagiairesTab(){
+  const container=document.getElementById('stagiaires-tab-list');if(!container)return;
+  const search=(document.getElementById('stag-search').value||'').toLowerCase().trim();
+  const stagesUsed=[...new Set(sessions.map(s=>s.stage).filter(Boolean))].sort();
+  document.getElementById('stag-filtre-bar').innerHTML=`<div class="filtre-chip${filtreStagiairesStage==='tous'?' active':''}" onclick="setFiltreStagiaires(this,'tous')">Tous</div>${stagesUsed.map(st=>`<div class="filtre-chip${filtreStagiairesStage===st?' active':''}" onclick="setFiltreStagiaires(this,'${st}')">📚 ${st}</div>`).join('')}`;
+  let sessF=filtreStagiairesStage==='tous'?sessions:sessions.filter(s=>s.stage===filtreStagiairesStage);
+  const index={};
+  sessF.forEach(sess=>sess.stagiaires.forEach(st=>{
+    const nom=(st.nom||'').trim();if(!nom)return;
+    if(!index[nom])index[nom]=[];
+    index[nom].push({...st,sessionDate:sess.date,sessionRoute:sess.route,sessionMeteo:sess.meteo,instructeur:sess.instructeur,stage:sess.stage,bareme:sess.bareme||16});
+  }));
+  // Tri numérique si les identifiants sont des chiffres, sinon alphabétique
+  function triNoms(a,b){const na=parseFloat(a),nb=parseFloat(b);if(!isNaN(na)&&!isNaN(nb))return na-nb;return a.localeCompare(b,'fr',{numeric:true});}
+  let noms=Object.keys(index).sort(triNoms);
+  if(search)noms=noms.filter(n=>n.toLowerCase().includes(search));
+  if(!noms.length){container.innerHTML=`<div class="empty-state"><div class="icon">🎓</div><p>Aucun stagiaire.</p></div>`;return;}
+  container.innerHTML=noms.map(nom=>{
+    const entries=index[nom];
+    const avg=(entries.reduce((a,e)=>a+e.note,0)/entries.length).toFixed(1);
+    const avgColor=getNoteColor(parseFloat(avg));
+    const hasFaute=entries.some(e=>e.fauteSec);
+    const sorted=[...entries].sort((a,b)=>a.sessionDate>b.sessionDate?1:-1);
+    const evolution=sorted.length>1?sorted[sorted.length-1].note-sorted[0].note:0;
+    const sessHtml=entries.map(e=>{
+      const col=getNoteColor(e.note,e.bareme||16);
+      let fauteHtml='';if(e.fauteSec){let ft='⚠️ ';if(e.fauteType)ft+=e.fauteType==='Autre (préciser)'?e.fauteAutre||'Autre':e.fauteType;fauteHtml=`<div style="font-size:11px;color:var(--danger);font-weight:600;">${ft}</div>`;}
+      const crit=(e.appreciationCriteres||[]).filter(Boolean);
+      const critHtml=crit.length?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${crit.map(c=>`<span style="background:var(--accent-light);border:1px solid rgba(0,49,137,0.15);color:var(--accent);border-radius:3px;padding:1px 6px;font-size:10px;font-weight:600;">${esc(c)}</span>`).join('')}</div>`:'';
+      const aprecHtml=e.appreciation?`<div style="font-size:11px;color:var(--text-muted);font-style:italic;margin-top:2px;">${esc(e.appreciation)}</div>`:'';
+      return `<div class="stag-session-row"><div class="stag-session-left"><div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">${e.stage?`<span class="stage-tag">📚 ${e.stage}</span>`:''}<span class="instr-chip">👤 ${e.instructeur}</span><span style="font-size:11px;color:var(--text-muted);">${formatDate(e.sessionDate)}</span></div><div style="font-size:11px;color:var(--text-muted);">${e.sessionRoute} ${getMeteoEmoji(e.sessionMeteo)}</div>${fauteHtml}${critHtml}${aprecHtml}</div><div class="stag-session-note" style="color:${col}">${e.note}/${e.bareme||16}</div></div>`;
+    }).join('');
+    return `<div class="stag-item"><div class="stag-item-header"><div><div class="stag-name">${nom}${hasFaute?' <span class="faute-badge">⚠️</span>':''}</div><div style="font-size:12px;color:var(--text-muted);margin-top:2px;">${entries.length} session(s) — Évol. <span style="color:${evolution>=0?'var(--success)':'var(--danger)'};font-weight:600;">${evolution>=0?'+':''}${evolution}</span></div></div><div><div class="stag-avg" style="color:${avgColor}">${avg}</div><div style="font-size:10px;color:var(--text-muted);">moy.</div></div></div><div>${sessHtml}</div><button class="btn btn-secondary btn-sm" style="margin-top:10px;width:100%;" onclick="voirSuiviStagiaire('${nom}')">📈 Suivi complet & Partager</button></div>`;
+  }).join('');
+}
+
+function voirSuiviStagiaire(nom){
+  const index={};
+  sessions.forEach(sess=>sess.stagiaires.forEach(st=>{
+    const n=(st.nom||'').trim();if(!n)return;
+    if(!index[n])index[n]=[];
+    index[n].push({...st,sessionDate:sess.date,sessionRoute:sess.route,sessionMeteo:sess.meteo,instructeur:sess.instructeur,stage:sess.stage,bareme:sess.bareme||16});
+  }));
+  const entries=(index[nom]||[]).sort((a,b)=>a.sessionDate>b.sessionDate?1:-1);
+  if(!entries.length)return;
+  const avg=(entries.reduce((a,e)=>a+e.note,0)/entries.length).toFixed(1);
+  const avgColor=getNoteColor(parseFloat(avg));
+  const evolution=entries.length>1?entries[entries.length-1].note-entries[0].note:0;
+  const hasFautes=entries.filter(e=>e.fauteSec).length;
+  let html=`<div style="font-family:'Spectral','Georgia',serif;font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px;">${nom}</div>
+    <div style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">${entries.length} session(s)</div>
+    <div class="stats-row"><div class="stat-box"><div class="stat-value" style="color:${avgColor}">${avg}</div><div class="stat-label">Moyenne</div></div><div class="stat-box"><div class="stat-value" style="color:${evolution>=0?'var(--success)':'var(--danger)'}">${evolution>=0?'+':''}${evolution}</div><div class="stat-label">Évolution</div></div><div class="stat-box"><div class="stat-value" style="color:${hasFautes?'var(--danger)':'var(--success)'}">${hasFautes}</div><div class="stat-label">⚠️ Fautes</div></div></div>`;
+  html+=`<div style="font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--accent);margin-bottom:10px;">PROGRESSION</div>`;
+  entries.forEach(e=>{
+    const bar=e.bareme||16;const col=getNoteColor(e.note,bar);const pct=((e.note/bar)*100).toFixed(0);
+    let ft='';if(e.fauteSec){ft=` ⚠️ ${e.fauteType?e.fauteType.replace(' (préciser)',''):''}`;}
+    const crit=(e.appreciationCriteres||[]).filter(Boolean);
+    const critHtml=crit.length?`<div style="margin-top:4px;display:flex;flex-wrap:wrap;gap:3px;">${crit.map(c=>`<span style="background:var(--accent-light);border:1px solid rgba(0,49,137,0.15);color:var(--accent);border-radius:3px;padding:1px 6px;font-size:10px;font-weight:600;">${esc(c)}</span>`).join('')}</div>`:'';
+    html+=`<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-muted);margin-bottom:4px;"><span>${formatDate(e.sessionDate)}${e.stage?' — '+e.stage:''}</span><span style="font-family:monospace;color:${col};font-weight:700;">${e.note}/${bar}${ft}</span></div><div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%;background:${col};"></div></div>${critHtml}${e.appreciation?`<div style="font-size:11px;color:var(--text-muted);margin-top:3px;font-style:italic;">"${esc(e.appreciation)}"</div>`:''}</div>`;
+  });
+  let txt=`SUIVI — ${nom}\n══════════════════\nMoy. ${avg} | Évol. ${evolution>=0?'+':''}${evolution} | Fautes : ${hasFautes}\n══════════════════\n`;
+  entries.forEach(e=>{
+    const bar=e.bareme||16;
+    txt+=`\n${formatDate(e.sessionDate)}${e.stage?' — '+e.stage:''}\n${e.instructeur} | ${e.sessionRoute}\nNote : ${e.note}/${bar}\n`;
+    if(e.fauteSec){let ft='⚠️ Faute';if(e.fauteType)ft+=` — ${e.fauteType==='Autre (préciser)'?e.fauteAutre||'Autre':e.fauteType}`;txt+=ft+'\n';}
+    const crit=(e.appreciationCriteres||[]).filter(Boolean);
+    if(crit.length)txt+=`Critères : ${crit.join(' | ')}\n`;
+    if(e.appreciation)txt+=`Note : ${e.appreciation}\n`;
+    txt+='──────────\n';
+  });
+  txt+=`\nNéoNote / CNFCF — ${new Date().toLocaleString('fr-FR')}`;
+  suiviTextePartage=txt;
+  document.getElementById('suivi-titre').textContent=`📈 ${nom}`;
+  document.getElementById('suivi-contenu').innerHTML=html;
+  openModal('modal-suivi');
+}
+function partagerSuivi(){
+  shareTexte=suiviTextePartage;
+  shareTitre=document.getElementById('suivi-titre').textContent.replace('📈 ','NéoNote — Suivi ');
+  document.getElementById('partage-titre').textContent='📤 Partager le suivi';
+  closeModal('modal-suivi');openModal('modal-partage');
+}
+
+// ══════════════════════════════════════════
+// EXPORT XLSX
+// ══════════════════════════════════════════
+function renderExportPage(){
+  const el=document.getElementById('export-stages-list');if(!el)return;
+  const stagesUsed=[...new Set(sessions.map(s=>s.stage).filter(Boolean))].sort();
+  if(!stagesUsed.length){el.innerHTML='<p style="color:var(--text-muted);font-size:13px;margin-bottom:16px;">Aucun stage avec sessions.</p>';return;}
+  el.innerHTML=stagesUsed.map(st=>{
+    const n=sessions.filter(s=>s.stage===st).length;
+    const stags=[...new Set(sessions.filter(s=>s.stage===st).flatMap(s=>s.stagiaires.map(st2=>st2.nom).filter(Boolean)))].length;
+    return `<div style="display:flex;align-items:center;justify-content:space-between;background:var(--surface2);border-radius:8px;padding:12px 16px;margin-bottom:10px;"><div><div style="font-weight:600;">📚 ${st}</div><div style="font-size:12px;color:var(--text-muted);">${n} session(s) — ${stags} stagiaire(s)</div></div><button class="btn btn-secondary btn-sm" onclick="exporterStage('${esc(st)}')">📥 .xlsx</button></div>`;
+  }).join('');
+}
+function exporterStage(nomStage){
+  const sessionsStage=sessions.filter(s=>s.stage===nomStage);
+  if(!sessionsStage.length){showToast('Aucune session');return;}
+  const index={};
+  sessionsStage.forEach(sess=>sess.stagiaires.forEach(st=>{
+    const nom=(st.nom||'').trim();if(!nom)return;
+    if(!index[nom])index[nom]=[];
+    index[nom].push({...st,sessionDate:sess.date,sessionRoute:sess.route,sessionMeteo:sess.meteo,instructeur:sess.instructeur,bareme:sess.bareme||16});
+  }));
+  const nomsTriés=Object.keys(index).sort((a,b)=>{const na=parseFloat(a),nb=parseFloat(b);if(!isNaN(na)&&!isNaN(nb))return na-nb;return a.localeCompare(b,'fr',{numeric:true});});
+  if(!nomsTriés.length){showToast('Aucun stagiaire nommé');return;}
+  const wb=XLSX.utils.book_new();
+  const recapData=[['NéoNote / CNFCF — ÉVALUATION','','','','','',''],['Stage :',nomStage,'','','','',''],['Exporté le :',new Date().toLocaleDateString('fr-FR'),'','','','',''],['','','','','','',''],['Stagiaire','Sessions','Note Moy.','Note Min','Note Max','Évolution','Fautes Sécu']];
+  nomsTriés.forEach(nom=>{
+    const entries=index[nom].sort((a,b)=>a.sessionDate>b.sessionDate?1:-1);
+    const avg=(entries.reduce((a,e)=>a+e.note,0)/entries.length).toFixed(1);
+    const min=Math.min(...entries.map(e=>e.note));const max=Math.max(...entries.map(e=>e.note));
+    const evol=entries.length>1?entries[entries.length-1].note-entries[0].note:0;
+    const fautes=entries.filter(e=>e.fauteSec).length;
+    recapData.push([nom,entries.length,parseFloat(avg),min,max,(evol>=0?'+':'')+evol,fautes>0?`⚠️ ${fautes}`:0]);
+  });
+  const wsRecap=XLSX.utils.aoa_to_sheet(recapData);wsRecap['!cols']=[{wch:24},{wch:10},{wch:12},{wch:10},{wch:10},{wch:12},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,wsRecap,'Récapitulatif');
+  nomsTriés.forEach(nom=>{
+    const entries=index[nom].sort((a,b)=>a.sessionDate>b.sessionDate?1:-1);
+    const bar=entries[0]?.bareme||16;
+    const data=[['FICHE STAGIAIRE — '+nom,'','','','','','','',''],['Stage :',nomStage,'','','','','','',''],['','','','','','','','',''],['Date','Instructeur','Route','Météo',`Note /${bar}`,'Faute Sécu','Type Faute','Critères','Appréciation']];
+    entries.forEach(e=>{
+      let fT='';if(e.fauteSec){fT=e.fauteType==='Autre (préciser)'?e.fauteAutre||'Autre':e.fauteType||'Oui';}
+      const crit=(e.appreciationCriteres||[]).filter(Boolean).join(' | ');
+      data.push([formatDate(e.sessionDate),e.instructeur,e.sessionRoute,e.sessionMeteo,e.note,e.fauteSec?'OUI':'',fT,crit,e.appreciation||'']);
+    });
+    const avg=(entries.reduce((a,e)=>a+e.note,0)/entries.length).toFixed(1);const evol=entries.length>1?entries[entries.length-1].note-entries[0].note:0;
+    data.push(['']);data.push(['Moyenne',`${avg}/${bar}`,'Évolution',(evol>=0?'+':'')+evol+' pts','Fautes',entries.filter(e=>e.fauteSec).length,'','']);
+    const ws=XLSX.utils.aoa_to_sheet(data);ws['!cols']=[{wch:12},{wch:20},{wch:12},{wch:18},{wch:10},{wch:12},{wch:16},{wch:36},{wch:40}];
+    XLSX.utils.book_append_sheet(wb,ws,nom.replace(/[\/\\?\*\[\]]/g,'').substring(0,31));
+  });
+  const filename=`NéoNote_${nomStage.replace(/\s+/g,'_')}_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb,filename);showToast(`📥 ${filename} téléchargé !`);
+}
+function exporterTousLesStages(){
+  const stagesUsed=[...new Set(sessions.map(s=>s.stage).filter(Boolean))].sort();
+  if(!stagesUsed.length){showToast('Aucun stage');return;}
+  stagesUsed.forEach((st,i)=>setTimeout(()=>exporterStage(st),i*600));
+  showToast(`📥 Export ${stagesUsed.length} stage(s) en cours...`);
+}
+function exporterDonnees(){const b=new Blob([JSON.stringify({sessions,stages,profiles,params:currentUser},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`cnfcf_${new Date().toISOString().split('T')[0]}.json`;a.click();showToast('📥 JSON exporté !');}
+
+// ══════════════════════════════════════════
+// DÉMARRAGE
+// ══════════════════════════════════════════
+(function start(){
+  loadFirebaseConfig();
+  const sl=localStorage.getItem('cnfcf_sessions');if(sl)sessions=JSON.parse(sl);
+  const stg=localStorage.getItem('cnfcf_stages');
+  if(stg){
+    const parsed=JSON.parse(stg);
+    // Gérer migration depuis ancien format tableau
+    if(Array.isArray(parsed)){stages={};}
+    else stages=parsed||{};
+  }
+  const crit=localStorage.getItem('cnfcf_criteres');if(crit)criteres=JSON.parse(crit);
+  initFirebase();
+  // Auto-reconnexion uniquement si le profil n'a pas de mot de passe obligatoire
+  // (instructeur et détaché ont maintenant un mot de passe → pas d'auto-login)
+  const savedUid=localStorage.getItem('cnfcf_current_user');
+  if(savedUid){
+    const tryAutoLogin=()=>{
+      const p=profiles[savedUid];
+      // Aucun rôle ne bénéficie plus de l'auto-login sans mdp
+      // On tente uniquement si le profil n'a pas de pwHash (anciens comptes sans mdp)
+      if(p&&!p.pwHash){
+        currentUser={...p,uid:savedUid};lancerApp();return true;}
+      return false;
+    };
+    if(!tryAutoLogin())setTimeout(tryAutoLogin,1500);
+  }
+})();
+
+// ── PWA ANDROID ──
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;document.getElementById('install-banner').style.display='flex';});
+document.getElementById('install-btn').addEventListener('click',async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;document.getElementById('install-banner').style.display='none';showToast('✅ NéoNote installée !');});
+document.getElementById('install-dismiss').addEventListener('click',()=>{document.getElementById('install-banner').style.display='none';});
+window.addEventListener('appinstalled',()=>{document.getElementById('install-banner').style.display='none';document.getElementById('ios-banner').style.display='none';});
+
+// ── PWA iOS ──
+(function(){
+  const isIos=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone===true||window.matchMedia('(display-mode: standalone)').matches;
+  if(isIos&&!isStandalone&&!localStorage.getItem('ios-banner-dismissed'))
+    setTimeout(()=>{document.getElementById('ios-banner').style.display='block';},2000);
+})();
+
+if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+
+// Ouvrir menu user
+document.getElementById('modal-user-menu').addEventListener('click',function(e){if(e.target===this)closeModal('modal-user-menu');});
+const origOpen=openModal;
+window.openModal=function(id){origOpen(id);if(id==='modal-user-menu')renderUserMenu();};
+</script>
+</body>
+</html>
